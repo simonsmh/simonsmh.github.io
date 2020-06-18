@@ -1,0 +1,1885 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on simonsmh - 后花园</title><link>https://simonsmh.cc/posts/</link><description>Recent content in Posts on simonsmh - 后花园</description><generator>Hugo -- gohugo.io</generator><language>zh</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Thu, 21 May 2020 23:09:18 +0800</lastBuildDate><atom:link href="https://simonsmh.cc/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Mumu 模拟器 &amp; WSL2，双倍的快乐</title><link>https://simonsmh.cc/posts/mumu_with_hyperv/</link><pubDate>Thu, 21 May 2020 23:09:18 +0800</pubDate><guid>https://simonsmh.cc/posts/mumu_with_hyperv/</guid><description>第一次有了最香的 WSL2，有了好用的 Mumu 模拟器，两件快乐事情重合在一起，而这两份快乐，又给我带来更多的快乐。得到的，本该是像梦境一般幸福的时间</description><content type="html"><![CDATA[<blockquote>
+<p>第一次有了最香的 WSL2，有了好用的 Mumu 模拟器，两件快乐事情重合在一起，而这两份快乐，又给我带来更多的快乐。得到的，本该是像梦境一般幸福的时间……</p>
+</blockquote>
+<h2 id="国产手游模拟器与-hyper-v-之争">国产手游模拟器与 Hyper-V 之争</h2>
+<p>Mumu 是一款商业化的 Android X86 手游模拟器，其运行手游的效率相对较高，体验尚佳，我曾经常使用，但是由于其无法与 Hyper-V 共存，便一直在寻找替代品。事实上，基本所有的模拟器都是基于开源的 Virtualbox 进行魔改提升效率，实现 Direct3D 11 渲染，完善用户体验，但是其基本的需求都是使用魔改 Virtualbox 自己的后端实现而达到的，自然从原理上就无法与 Hyper-V 兼容。</p>
+<p>这在旧时 Windows 时期，其实是件大快人心的好事，毕竟 Hyper-V 其运行效率难以与传统的虚拟机平台 Vmware、Virtualbox 竞争，也被吐过不少口水。不巧的是 Hyper-V 近年来用处是越来越多了，从一键开发虚拟环境搭建，到 Container，到 Windows Sandbox，一直到 WSL2 宣布使用 Hyper-V+Linux Kernel 方案替代 WSL1 的 Windows NT API 方案，日常的生活是越来越绕不开 Hyper-V 了。当然，强制让 Virtualbox 使用 Hyper-V 后端的解决方案也有，但是性能就比较难以令人接受，感兴趣可以通过修改 Genymotion 附带的 Virtualbox 配置来尝试（scrcpy 在高分屏上可能有性能问题）。</p>
+<h2 id="写作-nebula读作-windroy">写作 Nebula，读作 Windroy?</h2>
+<p>2020 年初，Mumu 手游助手测试版于网易 Mumu 官网推出，其与原版 Mumu 模拟器最不相同的地方就是在于其在原版引擎 Nemu 的基础上添加了一个新引擎 Nebula，其原理上就不同于传统的 Virtualbox，它不是跑在 Linux Kernel 之上，而是直接跑在 Windows Kernel 上，换句话说，其实现了 Windows API 与 Android API 的桥接与翻译。第一眼看见它时，我第一个想到的就是 6 年之前的 Bluestacks 和 <a href="http://web.archive.org/web/20141006160302/http://www.windroy.cn/">Windroy</a> 这两款特立独行的 Windows 平台 Android X86 兼容软件，依赖其出色的 <a href="https://source.android.com/devices/tech/dalvik">Dalvik</a> 性能而脱颖而出，但可惜的是这两款软件后来放弃了这个方向，带领行业纷纷转用虚拟机实现。</p>
+<p><img src="https://i.loli.net/2020/05/22/UrZSAH4y6aquojv.png" alt="image.png"></p>
+<p>下载试用 Nebula 星云引擎，果然因为其原理的不同，其启动速度飞快，反应迅速，界面也非常“熟悉”，是“家”一般的感觉——最后一版支持 Dalvik 运行时的 Android 4.4 KitKat，而与之相对的是 Nemu 标准引擎带来的 Android 6.0 Marshmallow。由于 Hyper-V 的冲突和限制，Nemu 引擎启动时就会触发 Windows 蓝屏，而 Nebula 就可以毫无压力的进行使用，且游戏性能确实优于 Nemu，运行游戏极少掉帧。</p>
+<p><img src="https://i.loli.net/2020/05/22/kwPbA1gVMzGCK7n.png" alt="image.png"></p>
+<p>相对运行完整虚拟机来说，在运行舟游等低负载压力的 Unity 游戏情况下显卡占用还是比较低的，体验可以说是相当不错了。</p>
+<p><img src="https://i.loli.net/2020/05/22/Th1RPyz5iLgSvBr.png" alt="image.png"></p>
+<p>虚拟机虽然跑不了 adbd，没有 Root，但是自带 Busybox 提供了一个 Root Shell 接口在
+<code>.\MuMu\mumu3\Engine\NEBULA\NEBULA-&lt;version&gt;-x86\sh.bat</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell">nebula<span class="se">\n</span>ebula.exe --cooked-mode --rootdir nebula/fs_static --session-id *** --dynamicdir *** /system/bin/sh 
+</code></pre></td></tr></table>
+</div>
+</div><p>其中 <code>dynamicdir</code> 就是系统之外数据的部分，似乎每个软件都应当有独立的空间，而引擎在使用的时候按需挂载。</p>
+<p>Mumu 限制了通过 GUI 为 Nebula 安装自己的软件包，但是可以通过这个接口使用命令行安装：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell">pm install -f *.apk
+</code></pre></td></tr></table>
+</div>
+</div><p>当然，因为其是 Dalvik，没有 dex2oat 的步骤， 直接拷贝至 <code>/data/app</code> 后重启也是可以的。</p>
+<p>我也尝试着拷贝了一份台服公主连结的 APK，不管是游戏引继还是资源包下载安装都没有遇到什么障碍，由于模拟器可以锁渲染 120 帧，很多地方都比手机要更加流畅。</p>
+<p>然而，在 2020 年的今天，寻找 MinSDK&lt;=19 的软件早就已经不是件容易事，日新月异的的 API 吸引着更多的应用开发者逐步抛弃低市占率的平台已是既成事实，但好在游戏行业大多不受其限制，毕竟更多的用户往往意味着更多的收入，这也是为什么如此低的 API 版本依然使 Nebula 对使用 Hyper-V 的手游玩家来说值得一用。</p>
+<h2 id="结语与展望">结语与展望</h2>
+<p>Windows 的子系统和容器的发展在近些年开始对消费者产生了难以抵抗的吸引力，但由于其与开源开放的 Linux 平台容器技术不同，以及 Android 平台本身就基于 Linux 内核开发，类似 Anbox 的容器应用曾经几乎不可能在 Windows 平台出现。今年的微软 Build 大会之上，微软首次展示了 WSL 与 GPU 的交互，展示了 WSL 平台的 GUI 应用，这或许意味着 Anbox 也可以通过 WSL 的 GPU 进行渲染，而不再需要额外的模拟器（当然，效率究竟几何仍需打个问号），又或许将来某一天 Project Astoria 就能以这种身份复活在 Windows Shell Experience 中。</p>
+]]></content></item><item><title>迁移至 Hugo</title><link>https://simonsmh.cc/posts/migrate-to-hugo/</link><pubDate>Wed, 12 Feb 2020 01:27:14 +0800</pubDate><guid>https://simonsmh.cc/posts/migrate-to-hugo/</guid><description>测试 今天花了一点时间把 Hugo 摸了一遍，找了一下比较好看的主题，实在是很对胃口，于是就抱过来用了，非常感谢！ 更换到 Hugo 主要还是因为 Hexo 大更新之后，原来</description><content type="html"><![CDATA[<h2 id="测试">测试</h2>
+<p>今天花了一点时间把 Hugo 摸了一遍，找了一下比较好看的<a href="https://github.com/Track3/hermit">主题</a>，实在是很对胃口，于是就抱过来用了，非常感谢！</p>
+<p>更换到 Hugo 主要还是因为 Hexo 大更新之后，原来的主题就坏掉了，而且不再更新，于是借机换了一个博客框架。还好，Hugo 对于 MarkDown 的兼容性还是很好的，以前的文章没有改动过就可以直接扔进去生成，而且速度比 Hexo 快了十几倍，非常酷。</p>
+<p>距离上一次更新文章已经过去快一年了，主要是因为学校的日常生活过于平淡，没有任何想要倾诉的想法。当然以前也是这样的，所以博客里基本上都只有教程和代码记录，而且都是写给自己看的，这次更新的契机还是 Jerry 跟我说 GitHub Pages 的证书掉了，CloudFlare CDN 挂不上我才去看了一眼，证明看我的博客的人虽少，却都是关系我的熟人，非常感谢你们的陪伴。</p>
+<p>本文的目的是为了触发 GitHub Action 的持续部署而测试使用的，虽然这个没有一丝年味的新春佳节已经过去，我在这里还是祝各位新春快乐，身体健康，平安无事。</p>
+]]></content></item><item><title>玩耍 TicWatch C2</title><link>https://simonsmh.cc/posts/ticwatch_play_around/</link><pubDate>Thu, 28 Mar 2019 09:34:00 +0000</pubDate><guid>https://simonsmh.cc/posts/ticwatch_play_around/</guid><description>之前就种草很久的 TicWatch 系列，由于最近的新品 C2 的上市打算购买一个来体验一下 Wear OS 的体验，而且正好小米手环2坏掉了（迫真），于是就从京东预定了一个 TicWatch C2</description><content type="html"><![CDATA[<p>之前就种草很久的 TicWatch 系列，由于最近的新品 C2 的上市打算购买一个来体验一下 Wear OS 的体验，而且正好小米手环2坏掉了（迫真），于是就从京东预定了一个 TicWatch C2 进行一下评测。</p>
+<h2 id="与-ticwatch-c2-的相遇">与 TicWatch C2 的相遇</h2>
+<p>京东预定的 TicWatch C2 在首发价格的基础上减去100块，实际到手价1k2，虽然有点小贵，但是外观和早些发售的 TicWatch Pro 相比还是非常好看的。外观简洁，整机金属外壳，皮质表带，给人感觉非常坚实可靠。</p>
+<p>TicWatch C2 的配置是高通210，512M的Ram，2G可用空间，只能说勉强够用，毕竟 Wear OS 没有开太多后台的需求。360*360分辨率的oled，315dpi，屏幕显示效果一般，但能满足显示需求，强光下的可见程度还算优秀。</p>
+<p>特性方面，TicWatch C2 支持 NFC，系统预装支付宝，支持24小时心率监测，支持 TicMotion 运动监测，IP68级别防水可以游泳。</p>
+<p>相比 TicWatch Pro，其缺少自适应光线，LED副屏和扬声器，还是较为令人困扰的。</p>
+<h2 id="糟心的-wear-os-for-china">糟心的 Wear OS for China</h2>
+<p>Wear OS 中国版的生态用两个字形容，<strong>糟糕</strong>。</p>
+<p>Wear OS 中国版 是 Google 与出门问问合作制作并推广的，对于出门问问厂商来说，这是一次千载难逢的好机会，解决了 TicWatch 长期以来的系统适配问题，而对于其他厂商来说则是一声噩耗，出门问问单方霸占了重要的流量入口：语音助手，其他厂商无法绕开这一限制，使得出门问问的一手好牌打得稀烂，软件生态几乎为0。</p>
+<p>系统预装 Wear OS 兼容软件：滴滴出行，搜狗地图，支付宝，网易云音乐</p>
+<p>我额外安装的 Wear OS 兼容软件：微信</p>
+<p>在使用了一周的 Wear OS for China 2.0 之后，我收到了 Wear OS for China H 2.2 更新，底层更新到Pie（PWDS.190212.008），体验较之前更进一步，支持低电量自动开启省电模式，解决了一大痛点，整体设计风格更偏向 Material Design 2。</p>
+<h2 id="改变现有的系统固件">改变现有的系统固件</h2>
+<p>网上看到了其他人在为 TicWatch Pro 制作<a href="https://forum.xda-developers.com/smartwatch/other-smartwatches/rom-kernel-t3821013/page136">ROM</a>，非常好奇，而向其询问了一些事项，了解了 TicWatch 解锁刷机的大致步骤，底座触点就是 USB。</p>
+<h3 id="适配-twrp">适配 TWRP</h3>
+<p>折腾花了一周半，主要是没有能够启动的内核。跟开发者聊了一下，好歹是个能启动起来的内核了，启动之后再把表里的内核dd出来。</p>
+<p><a href="https://twrp.me/mobvoi/mobvoiticwatchc2.html">制作好的 TWRP 已经提交 TeamWin 官网</a></p>
+<p>安装好 TWRP 后，首先得备份所有的 OTA 相关的文件，大概有十个分区，否则难以回到官方环境下继续享受系统更新。OTA 的检查还是非常严格的。</p>
+<h3 id="使用-magisk-模块进行系统文件更替">使用 Magisk 模块进行系统文件更替</h3>
+<p>根据<a href="https://bbs.chumenwenwen.com/forum.php?mod=viewthread&amp;tid=412586&amp;extra=page%3D1%26filter%3Dtypeid%26typeid%3D167">出门问问论坛</a>上的交流中谈到，如果去除 <code>cn_google_feature.xml</code> 就可以使用国际版的系统，体验几乎一致，而修改系统显然是我不能接受的，于是我使用常用的 Magisk 实现。</p>
+<p>由于 Magisk 的特性，如果有备份 boot.img，此模块就将不会影响 OTA 的更新。</p>
+<p><a href="https://github.com/simonsmh/ticwatch-googleify">TicWatch CN Google-ify (msm8909-pie)</a></p>
+<p>此外为了禁用出门问问语音助手以正常使用 Google Assistant，请在adb中执行以下命令：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">pm uninstall --user 0 com.mobvoi.ticwear.sidewearvoicesearch
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="仍无他用的-wear-os-global">仍无他用的 Wear OS Global</h2>
+<p>安装 Google Play 后，看着屈指可数的几个应用，我才发现，Wear OS 生态的差距并不体现在国内，而是全球的问题。</p>
+<p>Google 第一方的程序设计精美，动效优异，但是迟钝，210明显负担不起这样的负载。Google 地图 体验不错，定位偏移很遗憾；Google Fit 不如 TicWatch 自家的应用，何况还支持数据同步；Telegram 设计尚可，但真有人想在手表上聊IM吗？其余的应用没有过多体验，少用几款省省电。</p>
+<h2 id="总结">总结</h2>
+<p>请趁早打消购买 Wear OS 设备的念头。</p>
+<p>当然，如果你有闲钱，Wear OS 设备还是可以支付的起的话，不如购入体验一下，秒杀一众伪智能表产品还是绰绰有余。</p>
+<p>Wear OS 设备的性能限制和电量控制注定了它只是个手表而已，缺少杀手级的应用不会使得表成为一块破铜烂铁，但是总会使人感觉少了些什么，尤其是很少使用语音助手的我，很少体育锻炼的我，很少脱离手机的我，是否真的需要这样一部可穿戴设备？我觉得不。</p>
+]]></content></item><item><title>在 Arch Linux 上编译 Lineage 15.1 和 TWRP</title><link>https://simonsmh.cc/posts/arch_lineage/</link><pubDate>Mon, 29 Jan 2018 15:00:00 +0000</pubDate><guid>https://simonsmh.cc/posts/arch_lineage/</guid><description>在 Arch Linux 上编译 Lineage 15.1 和 TWRP 安装编译依赖 一个AUR空包搞定 1 yaourt -S lineageos-devel jdk8-openjdk 新建 Lineage 源码库 1 2 3 4 5 mkdir -p ~/android/lineage cd ~/android/lineage repo init -u https://github.com/LineageOS/android.git -b staging/lineage-15.1 mkdir -p .repo/local_manifests repo sync -c --force-sync -j16 拖机型匹配的 device tree 使用</description><content type="html"><![CDATA[<blockquote>
+<p>在 Arch Linux 上编译 Lineage 15.1 和 TWRP</p>
+</blockquote>
+<h2 id="安装编译依赖">安装编译依赖</h2>
+<p>一个AUR空包搞定</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">yaourt -S lineageos-devel jdk8-openjdk
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="新建-lineage-源码库">新建 Lineage 源码库</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">mkdir -p ~/android/lineage
+<span class="nb">cd</span> ~/android/lineage
+repo init -u https://github.com/LineageOS/android.git -b staging/lineage-15.1
+mkdir -p .repo/local_manifests
+repo sync -c --force-sync -j16
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="拖机型匹配的-device-tree">拖机型匹配的 device tree</h2>
+<p>使用<code>breakfast</code>就可以寻找所需要的文件，但是不如自己控制来的方便。  
+我使用的 oneplus3 的 lineageos 15.1 的 roomservice 如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+<span class="nt">&lt;manifest&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;TheMuppets/proprietary_vendor_oneplus&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/oneplus&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;lineage-15.1&#34;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;dianlujitao/android_kernel_oneplus_msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;kernel/oneplus/msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;LineageOS/android_device_oneplus_oneplus3&#34;</span> <span class="na">path=</span><span class="s">&#34;device/oneplus/oneplus3&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;lineage-15.1&#34;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;LineageOS/android_device_oppo_common&#34;</span> <span class="na">path=</span><span class="s">&#34;device/oppo/common&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;lineage-15.1&#34;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;LineageOS/android_device_qcom_common&#34;</span> <span class="na">path=</span><span class="s">&#34;device/qcom/common&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;LineageOS/android_packages_resources_devicesettings&#34;</span> <span class="na">path=</span><span class="s">&#34;packages/resources/devicesettings&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/manifest&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我使用的 oneplus3 的 omni 8.1 的 roomservice 如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+<span class="c">&lt;!--Please do not manually edit this file--&gt;</span>
+<span class="nt">&lt;manifest&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;TheMuppets/proprietary_vendor_oneplus&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/oneplus&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;lineage-15.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_device_oneplus_oneplus3&#34;</span> <span class="na">path=</span><span class="s">&#34;device/oneplus/oneplus3&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_hardware_qcom_display-caf-msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;hardware/qcom/display-caf-msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_hardware_qcom_audio-caf-msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;hardware/qcom/audio-caf-msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_hardware_qcom_media-caf-msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;hardware/qcom/media-caf-msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;vendor_qcom_opensource_dataservices&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/qcom/opensource/dataservices&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_device_qcom_caf-sepolicy&#34;</span> <span class="na">path=</span><span class="s">&#34;device/qcom/sepolicy&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_ant-wireless_antradio-library&#34;</span> <span class="na">path=</span><span class="s">&#34;external/ant-wireless/antradio-library&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_ant-wireless_ant_service&#34;</span> <span class="na">path=</span><span class="s">&#34;external/ant-wireless/ant_service&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_ant-wireless_ant_native&#34;</span> <span class="na">path=</span><span class="s">&#34;external/ant-wireless/ant_native&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_kernel_oneplus_msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;kernel/oneplus/msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_vendor_qcom_opensource_interfaces&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/qcom/opensource/interfaces&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/manifest&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我使用的 oneplus3 的 twrp 的 roomservice 如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+<span class="c">&lt;!--Please do not manually edit this file--&gt;</span>
+<span class="nt">&lt;manifest&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;TheMuppets/proprietary_vendor_oneplus&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/oneplus&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;lineage-15.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;TeamWin/android_device_oneplus_oneplus3&#34;</span> <span class="na">path=</span><span class="s">&#34;device/oneplus/oneplus3&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;TeamWin/android_device_qcom_common&#34;</span> <span class="na">path=</span><span class="s">&#34;device/qcom/common&#34;</span> <span class="na">remote=</span><span class="s">&#34;github&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.0&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;remove-project</span> <span class="na">name=</span><span class="s">&#34;platform/bootable/recovery&#34;</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_bootable_recovery&#34;</span> <span class="na">path=</span><span class="s">&#34;bootable/recovery&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_busybox&#34;</span> <span class="na">path=</span><span class="s">&#34;external/busybox&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_hardware_qcom_display-caf-msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;hardware/qcom/display-caf-msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_hardware_qcom_audio-caf-msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;hardware/qcom/audio-caf-msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_hardware_qcom_media-caf-msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;hardware/qcom/media-caf-msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;vendor_qcom_opensource_dataservices&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/qcom/opensource/dataservices&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_device_qcom_caf-sepolicy&#34;</span> <span class="na">path=</span><span class="s">&#34;device/qcom/sepolicy&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_ant-wireless_antradio-library&#34;</span> <span class="na">path=</span><span class="s">&#34;external/ant-wireless/antradio-library&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_ant-wireless_ant_service&#34;</span> <span class="na">path=</span><span class="s">&#34;external/ant-wireless/ant_service&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_external_ant-wireless_ant_native&#34;</span> <span class="na">path=</span><span class="s">&#34;external/ant-wireless/ant_native&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_kernel_oneplus_msm8996&#34;</span> <span class="na">path=</span><span class="s">&#34;kernel/oneplus/msm8996&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;project</span> <span class="na">name=</span><span class="s">&#34;android_vendor_qcom_opensource_interfaces&#34;</span> <span class="na">path=</span><span class="s">&#34;vendor/qcom/opensource/interfaces&#34;</span> <span class="na">remote=</span><span class="s">&#34;omnirom&#34;</span> <span class="na">revision=</span><span class="s">&#34;android-8.1&#34;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/manifest&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>将此文件存放在<code>.repo/local_manifests/roomservice.xml</code>即可同步所需文件。</p>
+<h2 id="解决编译问题">解决编译问题</h2>
+<h3 id="不能使用-python3">不能使用 python3</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">ln -s /usr/bin/python2 ~/bin/python
+ln -s /usr/bin/python2-config ~/bin/python-config
+<span class="nv">PATH</span><span class="o">=</span>~/bin:<span class="nv">$PATH</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="中文环境问题">中文环境问题</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">export</span> <span class="s1">&#39;ANDROID_JACK_VM_ARGS=&#34;-Dfile.encoding=UTF-8 -XX:+TieredCompilation&#34;&#39;</span> &gt;&gt; ~/.bashrc
+<span class="nv">LANG</span><span class="o">=</span>C
+<span class="nv">LC_CTYPE</span><span class="o">=</span>C
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="ccache-缓存">ccache 缓存</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">echo</span> <span class="s1">&#39;export USE_CCACHE=1
+</span><span class="s1">export CCACHE_COMPRESS=1&#39;</span> &gt;&gt; ~/.bashrc
+ccache -M 30G
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="在-gerrit-选取自定义-committag">在 gerrit 选取自定义 commit/tag</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">. build/envsetup.sh
+repopick -t oreo-mr1-perf-profiles
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="清理编译环境">清理编译环境</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">make clean
+rm -rf out
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="开始编译">开始编译</h2>
+<p>LineageOS</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nv">PATH</span><span class="o">=</span>~/bin:<span class="nv">$PATH</span> <span class="o">&amp;&amp;</span> <span class="nv">LANG</span><span class="o">=</span>C <span class="o">&amp;&amp;</span> <span class="nv">LC_CTYPE</span><span class="o">=</span>C
+. build/envsetup.sh
+brunch oneplus3
+</code></pre></td></tr></table>
+</div>
+</div><p>TWRP</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nv">PATH</span><span class="o">=</span>~/bin:<span class="nv">$PATH</span> <span class="o">&amp;&amp;</span> <span class="nv">LANG</span><span class="o">=</span>C <span class="o">&amp;&amp;</span> <span class="nv">LC_CTYPE</span><span class="o">=</span>C
+. build/envsetup.sh
+lunch omni_oneplus3-eng
+mka recoveryimg
+<span class="c1">#brunch oneplus3</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="自定义编译-target">自定义编译 target</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">add_lunch_combo lineage_oneplus3-release
+lunch omni_oneplus3-userdebug
+brunch
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>Debian 打包实战</title><link>https://simonsmh.cc/posts/debian_%E6%89%93%E5%8C%85%E5%AE%9E%E6%88%98/</link><pubDate>Wed, 04 Oct 2017 17:45:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian_%E6%89%93%E5%8C%85%E5%AE%9E%E6%88%98/</guid><description>通体参考 Debian 新维护者手册 Debian 打包 vlmcsd 环境变量 首先设置两个环境变量，$DEBEMAIL和$DEBFULLNAME，这样大多数 Debian 维护工具就能够正确识别</description><content type="html"><![CDATA[<blockquote>
+<p>通体参考 <a href="https://www.debian.org/doc/manuals/maint-guide/index.zh-cn.html">Debian 新维护者手册</a></p>
+</blockquote>
+<h1 id="debian-打包-vlmcsd">Debian 打包 vlmcsd</h1>
+<h2 id="环境变量">环境变量</h2>
+<p>首先设置两个环境变量，<code>$DEBEMAIL</code>和<code>$DEBFULLNAME</code>，这样大多数 Debian 维护工具就能够正确识别你用于维护软件包的姓名和电子邮件地址。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">export</span> <span class="nv">DEBEMAIL</span><span class="o">=</span><span class="s2">&#34;simonsmh@gmail.com&#34;</span>
+<span class="nb">export</span> <span class="nv">DEBFULLNAME</span><span class="o">=</span><span class="s2">&#34;Simon Shi&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="获取源代码和源代码包">获取源代码和源代码包</h2>
+<p>需要根据 Debian 政策（Debian Policy）以及约定俗成的做法来调整软件包名和上游版本。参考文档 <a href="https://www.debian.org/doc/manuals/maint-guide/first.zh-cn.html#namever">2.6. 软件包名称和版本</a>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">git clone https://github.com/Wind4/vlmcsd
+mv vlmcsd vlmcsd-1111
+tar Jcf vlmcsd-1111.tar.xz vlmcsd-1111
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="进行创建初始版本">进行创建初始版本</h2>
+<p>我们使用 debmake 工具将 vlmcsd 创建为 <a href="https://www.debian.org/doc/manuals/maint-guide/advanced.zh-cn.html#native-dh-make">Debian 本土软件包</a>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">cd</span> vlmcsd-1111
+debmake -n
+</code></pre></td></tr></table>
+</div>
+</div><p>然后我们就可以进行初步的打包了。</p>
+<h2 id="解决软件包构建中的问题">解决软件包构建中的问题</h2>
+<p>在此次构建过程中，由于 Makefile target 的缺失，默认情况下我们只能将其打包成空包。我们需要进行一定的改进。</p>
+<h2 id="install-文件">install 文件</h2>
+<p>如果你的软件包需要那些标准的 make install 没有安装的文件，你可以把文件名和目标路径写入 <a href="https://www.debian.org/doc/manuals/maint-guide/dother.zh-cn.html#install">install 文件</a>，它们将被 dh_install 安装。你需要首先检查要安装的文件是否有更有针对性的特定工具会对其进行安装。例如，文档应写在 docs 文件中安装，而不是这一个。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">bin/vlmcs usr/bin
+bin/vlmcsd usr/bin
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="vlmcsdservice-文件">vlmcsd.service 文件</h2>
+<p>vlmcsd.service 文件会被安装为 /etc/systemd/system/vlmcsd.service ，该脚本可用于启动和停止守护进程。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-ini" data-lang="ini"><span class="k">[Unit]</span>
+<span class="na">Description</span><span class="o">=</span><span class="s">Vlmcsd (KMS Emulator in C)</span>
+<span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
+
+<span class="k">[Service]</span>
+<span class="na">Type</span><span class="o">=</span><span class="s">simple</span>
+<span class="na">User</span><span class="o">=</span><span class="s">nobody</span>
+<span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/vlmcsd -D -e</span>
+
+<span class="k">[Install]</span>
+<span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="vlmcsdmanpage-文件">vlmcsd.manpage 文件</h2>
+<p>你的程序应该有 man 手册页，如果它们没有自带则需要由你来创建。dh_make 命令创建了几个 man 手册页的模板。为每一个缺手册的命令拷贝一份模板，并妥善地编写，并且要删除未使用的模板。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">man/vlmcs.1
+man/vlmcsd.7
+man/vlmcsd.8
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="后续">后续</h2>
+<p>在这时，已经完成了软件包必要操作的创建了。<a href="https://github.com/simonsmh/vlmcsd">本软件包</a>已经可以正常使用。</p>
+]]></content></item><item><title>Hyper-v Gen2 UEFI 与 Arch Linux</title><link>https://simonsmh.cc/posts/hyper-v_gen2_uefi_%E4%B8%8E_arch-linux/</link><pubDate>Wed, 04 Oct 2017 17:21:00 +0000</pubDate><guid>https://simonsmh.cc/posts/hyper-v_gen2_uefi_%E4%B8%8E_arch-linux/</guid><description>WSL 不够用，装个虚拟机看看 在 Hyper-v 中以 UEFI 引导安装 Arch Linux 检查网络链接 ping 一下外网。 1 ping -c 3 archlinux.org 分区 1 gdisk /dev/sda 然后进去 gdisk 操作。 o # GPT 分区表 UEFI 需要单独 FAT32 分区，这里</description><content type="html"><![CDATA[<blockquote>
+<p>WSL 不够用，装个虚拟机看看</p>
+</blockquote>
+<h1 id="在-hyper-v-中以-uefi-引导安装-arch-linux">在 Hyper-v 中以 UEFI 引导安装 Arch Linux</h1>
+<h2 id="检查网络链接">检查网络链接</h2>
+<p>ping 一下外网。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">ping -c 3 archlinux.org
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="分区">分区</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">gdisk /dev/sda
+</code></pre></td></tr></table>
+</div>
+</div><p>然后进去 gdisk 操作。</p>
+<p><code>o # GPT 分区表</code><br>
+UEFI 需要单独 FAT32 分区，这里跟 boot 分在一起。<br>
+<code>n</code> <code>1</code> 回车 <code>+300M</code> <code>ef00 #boot</code><br>
+<code>n</code> <code>2</code> 回车 回车 <code>8300 #root</code><br>
+<code>w</code> 写入配置，重启即可。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">reboot
+mkfs.vfat -F32 /dev/sda1
+mkfs.ext4 /dev/sda2
+</code></pre></td></tr></table>
+</div>
+</div><p>挂载分区。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">mount /dev/sda2 /mnt
+mkdir /mnt/boot
+mount /dev/sda1 /mnt/boot
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="安装基本组件">安装基本组件</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">pacstrap /mnt base base-devel
+genfstab -U /mnt &gt;&gt; /mnt/etc/fstab
+</code></pre></td></tr></table>
+</div>
+</div><p>安装 UEFI 引导。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">bootctl --path=/mnt/boot install
+cp /mnt/usr/share/systemd/bootctl/arch.conf /mnt/boot/loader/entries/
+blkid -s PARTUUID -o value /dev/sda1 #75a1a751-2c92-457d-b97b-75abc3f9ebbb
+</code></pre></td></tr></table>
+</div>
+</div><p>进行设置。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">arch-chroot /mnt
+echo XPS15 &gt; /etc/hostname
+passwd
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="后续">后续</h2>
+<p>然后电脑更新 16299 爆炸了，没法加载 hyper-v 驱动，就没法继续搞事了。</p>
+]]></content></item><item><title>树莓派3做RJ45网卡接无线网（误</title><link>https://simonsmh.cc/posts/raspi_rj45/</link><pubDate>Thu, 31 Aug 2017 00:03:00 +0000</pubDate><guid>https://simonsmh.cc/posts/raspi_rj45/</guid><description>丢配置 1 2 3 4 5 6 7 8 9 10 11 12 13 [Match] Name=eth0 [Network] Address=10.0.1.1/24 DHCPServer=yes IPForward=yes IPMasquerade=yes [DHCPServer] DNS=119.29.29.29 EmitDNS=yes EmitRouter=yes 这个是 systemd-networkd 在/etc/systemd/network/里的eth0配置文件，将树莓派当作</description><content type="html"><![CDATA[<h2 id="丢配置">丢配置</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-ini" data-lang="ini"><span class="k">[Match]</span>
+<span class="na">Name</span><span class="o">=</span><span class="s">eth0</span>
+
+<span class="k">[Network]</span>
+<span class="na">Address</span><span class="o">=</span><span class="s">10.0.1.1/24</span>
+<span class="na">DHCPServer</span><span class="o">=</span><span class="s">yes</span>
+<span class="na">IPForward</span><span class="o">=</span><span class="s">yes</span>
+<span class="na">IPMasquerade</span><span class="o">=</span><span class="s">yes</span>
+
+<span class="k">[DHCPServer]</span>
+<span class="na">DNS</span><span class="o">=</span><span class="s">119.29.29.29</span>
+<span class="na">EmitDNS</span><span class="o">=</span><span class="s">yes</span>
+<span class="na">EmitRouter</span><span class="o">=</span><span class="s">yes</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这个是 systemd-networkd 在/etc/systemd/network/里的eth0配置文件，将树莓派当作网关处理数据包。<br>
+其余可以随意按照正常方式接入无线网络（NetworkManager），也可以搭建dnsmasq做dhcp/dns服务器，同时赞美systemd。</p>
+]]></content></item><item><title>移动递归分布的 osz 曲包</title><link>https://simonsmh.cc/posts/move_osz/</link><pubDate>Sun, 18 Jun 2017 20:24:00 +0000</pubDate><guid>https://simonsmh.cc/posts/move_osz/</guid><description>有时下好的曲包会被好心分组分类，殊不知没玩过怎么知道好玩与否呢？ 移动递归分布的 osz 曲包 1 find . -iname &amp;#39;*.osz&amp;#39; -exec mv {} ./ \; 从当前目录为开始，将 osz 后缀的文件移动</description><content type="html"><![CDATA[<blockquote>
+<p>有时下好的曲包会被好心分组分类，殊不知没玩过怎么知道好玩与否呢？</p>
+</blockquote>
+<h2 id="移动递归分布的-osz-曲包">移动递归分布的 osz 曲包</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">find . -iname &#39;*.osz&#39; -exec mv {} ./ \;
+</code></pre></td></tr></table>
+</div>
+</div><p>从当前目录为开始，将 osz 后缀的文件移动到当前目录下。</p>
+]]></content></item><item><title>树莓派3 与 Arch linux ARM</title><link>https://simonsmh.cc/posts/rpi_archlinux/</link><pubDate>Sat, 17 Jun 2017 00:03:00 +0000</pubDate><guid>https://simonsmh.cc/posts/rpi_archlinux/</guid><description>树莓派3 与 Arch linux ARM 刷写镜像参考ArchLinuxARM文档 先换源，然后安装些软件包 1 2 pacman -Syu xorg xorg-xinit xf86-video-fbdev xorg-xrefresh make gcc git automake autoconf fakeroot pkg-config libtool xfce4 xfce4-goodies lightdm lightdm-gtk-greeter xarchiver vim tmux ffmpeg chromium sudo iw wireless_tools wpa_supplicant noto-fonts</description><content type="html"><![CDATA[<h2 id="树莓派3-与-arch-linux-arm">树莓派3 与 Arch linux ARM</h2>
+<p>刷写镜像参考<a href="https://archlinuxarm.org/platforms/armv8/broadcom/raspberry-pi-3">ArchLinuxARM文档</a><br>
+先换源，然后安装些软件包</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">pacman -Syu xorg xorg-xinit xf86-video-fbdev xorg-xrefresh make gcc git automake autoconf fakeroot pkg-config libtool xfce4 xfce4-goodies lightdm lightdm-gtk-greeter xarchiver vim tmux ffmpeg chromium sudo iw wireless_tools wpa_supplicant noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-roboto networkmanager network-manager-applet rsync patch packer
+systemctl <span class="nb">enable</span> lightdm NetworkManager
+</code></pre></td></tr></table>
+</div>
+</div><p>重启，就可以在桌面环境使用普通用户了。<br>
+使用AUR装俩主题</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">packer -S paper-icon-theme-git adapta-gtk-theme-git yaourt
+</code></pre></td></tr></table>
+</div>
+</div><p>中文</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">locale-gen
+<span class="nb">echo</span> <span class="nv">LANG</span><span class="o">=</span>zh_CN.UTF-8 &gt; /etc/locale.conf
+</code></pre></td></tr></table>
+</div>
+</div><p>Arch是我接触过的第三个Linux发行版，虽然被称为文档最详细的邪教，ARM平台不受官方支持实在令人苦恼。
+今年年底Arch平台即将放弃32位支持，而树莓派3的AArch64架构驱动仍然迟迟未来，会有多少教徒坚守社区呢？</p>
+<p>另外拔电源等非正常关机后，开机必定Kernel Panic一次，目前还没有找到好的解决措施。</p>
+]]></content></item><item><title>当 ArchiSteamFarm 遇上 Linux</title><link>https://simonsmh.cc/posts/asf_meet_linux/</link><pubDate>Fri, 24 Feb 2017 19:52:00 +0000</pubDate><guid>https://simonsmh.cc/posts/asf_meet_linux/</guid><description>ASF重构（.NET Framework -&amp;gt; .NET Core）之后不再使用mono了，尊重开发者的决定换用dotnet。 6月26日开始重构进程，8月14日 dotnet 2.0发布</description><content type="html"><![CDATA[<blockquote>
+<p>ASF重构（.NET Framework -&gt; .NET Core）之后不再使用mono了，尊重开发者的决定换用dotnet。<br>
+6月26日开始重构进程，8月14日 dotnet 2.0发布。</p>
+</blockquote>
+<!-- raw HTML omitted -->
+<h2 id="在-linux-上安装-dotnet">在 Linux 上安装 dotnet</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor &gt; /etc/apt/trusted.gpg.d/microsoft.gpg
+echo &#34;deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-stretch-prod stretch main&#34; &gt; /etc/apt/sources.list.d/dotnetdev.list
+apt update
+apt install dotnet-sdk-2.0.0
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="在-linux-上安装-mono-eol">在 Linux 上安装 mono (EOL)</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+echo &#34;deb http://download.mono-project.com/repo/debian jessie main&#34; | sudo tee /etc/apt/sources.list.d/mono-official.list
+apt update
+apt install mono-complete
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="拖-asf-源码">拖 ASF 源码</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">git clone git@github.com:JustArchi/ArchiSteamFarm.git
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="编译exe">编译exe</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">cd ArchiSteamFarm
+./cc.sh
+</code></pre></td></tr></table>
+</div>
+</div><p>因为有自动更新功能，所以不需要再去更新了。<br>
+然后再将ASF的config存放到自己想要的目录。</p>
+<h2 id="小坑-on-debian-buster">小坑 on Debian Buster</h2>
+<p>由于 buster 尚在 testing，所以并没有为 buster 单独编译的 dotnet sdk，故导致了一些<a href="https://github.com/dotnet/core-setup/issues/2943">喜闻乐见的问题</a>。</p>
+<h2 id="开机持续运行">开机持续运行</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">echo &#39;tmux new-window /root/ArchiSteamFarm/run.sh --path=/root/.config/ASF/&#39; &gt;&gt; /etc/rc.local
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>openwrt 无线中继</title><link>https://simonsmh.cc/posts/openwrt_%E6%97%A0%E7%BA%BF%E4%B8%AD%E7%BB%A7/</link><pubDate>Fri, 24 Feb 2017 19:46:00 +0000</pubDate><guid>https://simonsmh.cc/posts/openwrt_%E6%97%A0%E7%BA%BF%E4%B8%AD%E7%BB%A7/</guid><description>openwrt 无线中继 先在 网络-WiFi 中 Add 一个 Client, 进行链接先前路由. Interfaces - LAN 中 creates a bridge. 将所有 Ethernet Adapter and Wireless Network 勾选到 LAN 上. 自由添加 Wifi Master, 关闭防火墙. 手动编辑 config, 开启 Client 40mhz.</description><content type="html"><![CDATA[<h2 id="openwrt-无线中继">openwrt 无线中继</h2>
+<ol>
+<li>先在 网络-WiFi 中 Add 一个 Client, 进行链接先前路由.</li>
+<li>Interfaces - LAN 中 creates a bridge.</li>
+<li>将所有 Ethernet Adapter and Wireless Network 勾选到 LAN 上.</li>
+<li>自由添加 Wifi Master, 关闭防火墙.</li>
+<li>手动编辑 config, 开启 Client 40mhz.</li>
+</ol>
+]]></content></item><item><title>Exview 车牌研究</title><link>https://simonsmh.cc/posts/exview%E8%BD%A6%E7%89%8C%E7%A0%94%E7%A9%B6/</link><pubDate>Mon, 02 Jan 2017 17:47:00 +0000</pubDate><guid>https://simonsmh.cc/posts/exview%E8%BD%A6%E7%89%8C%E7%A0%94%E7%A9%B6/</guid><description>记载了一些 Exview 逆向工程。 Exview 车牌研究 车牌其实是 t.cn 短网址 前排提醒本地修改已报废，只能使用远程的车牌来替代 老车牌 RIY6p9B 这是最最原始的车牌，指向的是 http://exview.gtool.ml/driver161217.jsonp 也就</description><content type="html"><![CDATA[<blockquote>
+<p>记载了一些 Exview 逆向工程。</p>
+</blockquote>
+<h2 id="exview-车牌研究">Exview 车牌研究</h2>
+<p>车牌其实是 t.cn 短网址
+前排提醒本地修改已报废，只能使用远程的车牌来替代</p>
+<h2 id="老车牌-riy6p9b">老车牌 RIY6p9B</h2>
+<p>这是最最原始的车牌，指向的是
+<a href="http://exview.gtool.ml/driver161217.jsonp">http://exview.gtool.ml/driver161217.jsonp</a>
+也就是
+<a href="https://github.com/ghostgzt/ExView/raw/master/driver161217.jsonp">https://github.com/ghostgzt/ExView/raw/master/driver161217.jsonp</a>
+为了破解认证，我们必须解读js的内容</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="nb">eval</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">f</span><span class="p">,</span><span class="nx">u</span><span class="p">,</span><span class="nx">c</span><span class="p">,</span><span class="nx">k</span><span class="p">,</span><span class="nx">e</span><span class="p">,</span><span class="nx">r</span><span class="p">){</span><span class="nx">e</span><span class="o">=</span><span class="kd">function</span><span class="p">(</span><span class="nx">c</span><span class="p">){</span><span class="k">return</span><span class="p">(</span><span class="nx">c</span><span class="o">&lt;</span><span class="nx">u</span><span class="o">?</span><span class="s1">&#39;&#39;</span><span class="o">:</span><span class="nx">e</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">c</span><span class="o">/</span><span class="nx">u</span><span class="p">)))</span><span class="o">+</span><span class="p">((</span><span class="nx">c</span><span class="o">=</span><span class="nx">c</span><span class="o">%</span><span class="nx">u</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">35</span><span class="o">?</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="nx">c</span><span class="o">+</span><span class="mi">29</span><span class="p">)</span><span class="o">:</span><span class="nx">c</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="mi">36</span><span class="p">))};</span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="s1">&#39;&#39;</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^/</span><span class="p">,</span><span class="nb">String</span><span class="p">)){</span><span class="k">while</span><span class="p">(</span><span class="nx">c</span><span class="o">--</span><span class="p">)</span><span class="nx">r</span><span class="p">[</span><span class="nx">e</span><span class="p">(</span><span class="nx">c</span><span class="p">)]</span><span class="o">=</span><span class="nx">k</span><span class="p">[</span><span class="nx">c</span><span class="p">]</span><span class="o">||</span><span class="nx">e</span><span class="p">(</span><span class="nx">c</span><span class="p">);</span><span class="nx">k</span><span class="o">=</span><span class="p">[</span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span><span class="k">return</span> <span class="nx">r</span><span class="p">[</span><span class="nx">e</span><span class="p">]}];</span><span class="nx">e</span><span class="o">=</span><span class="kd">function</span><span class="p">(){</span><span class="k">return</span><span class="s1">&#39;\\w+&#39;</span><span class="p">};</span><span class="nx">c</span><span class="o">=</span><span class="mi">1</span><span class="p">};</span><span class="k">while</span><span class="p">(</span><span class="nx">c</span><span class="o">--</span><span class="p">)</span><span class="k">if</span><span class="p">(</span><span class="nx">k</span><span class="p">[</span><span class="nx">c</span><span class="p">])</span><span class="nx">f</span><span class="o">=</span><span class="nx">f</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;\\b&#39;</span><span class="o">+</span><span class="nx">e</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;\\b&#39;</span><span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">),</span><span class="nx">k</span><span class="p">[</span><span class="nx">c</span><span class="p">]);</span><span class="k">return</span> <span class="nx">f</span><span class="p">}(</span><span class="s1">&#39;v([&#34;s&#34;,&#34;m&#34;].u(2.b.c.f(\&#39;6 9!\&#39;+0.4+\&#39;6 9!\&#39;))==-1&amp;&amp;!d.e){7 0.4;g.h=&#34;i&#34;;7 0.j;2.k.l(&#34;\\8\\8\\n\\o\\p\\q\\r~&lt;5&gt;\\t\\3\\a\\w\\x\\y\\z\\A\\B+\\3\\a\\C\\D\\E\\F\\G\\H&lt;5&gt;\\3\\I+\\J\\K\\L\\M&#34;,N.O,P(){2.Q.R.S(1)});T U();}&#39;</span><span class="p">,</span><span class="mi">57</span><span class="p">,</span><span class="mi">57</span><span class="p">,</span><span class="s1">&#39;localStorage||ExView|u6350|ExView_InitJSON|br|Keep|delete|u597d|Out|u8d60|tools|md5|window|debug|hex_md5|mySession|initjsonpath|RtuFEqa|ExView_InitType|fw|alert|552bc26417cb2969badc8f1229797571|u5750|u516c|u4ea4|u8f66|u5427|1b22289d656182b24547f307c9d368b7|u5df2|indexOf|if|u7684|u8001|u53f8|u673a|uff0c|u51ed10|u51ed|u636e|u627e|u4f5c|u8005|uff01|u8d6050|u53bb|u5e7f|u544a|u9001VIP|sessionStorage|modaltitleextra|function|modules|pluginpage|init|throw|SyntaxError&#39;</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">),</span><span class="mi">0</span><span class="p">,{}))</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>若无法解答，我们只能选择删除验证，而且需要另寻服务器，因为我发现如果content header不为下载，则无法被解析，于是我选择自己调试更新文件。</p>
+<h2 id="私家车牌-rikcxgj">私家车牌 RIkcxgj</h2>
+<p>这指向的是我的服务器上的 jsonp 文件，唯一缺点是需要实时更新。
+于是我写了个脚本每天跑，累死了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="cp">#!/bin/sh
+</span><span class="cp"></span>wget https://github.com/ghostgzt/ExView/raw/master/driver161217.jsonp -O owndriver.jsonp
+sed -i <span class="s1">&#39;1d&#39;</span> owndriver.jsonp
+sed -i <span class="s2">&#34;s/灵车漂移/下山的59/&#34;</span> owndriver.jsonp
+sed -i <span class="s2">&#34;s/服务器上的来源信息.*\&#34;/咱的信息\&#34;/&#34;</span> owndriver.jsonp
+</code></pre></td></tr></table>
+</div>
+</div><p>去验证，去广告，去粗鄙之语。
+与此同时，在翻源码时我看到了一些用户的vip信息以明文保存（现在已经base64加密了）。
+<a href="https://github.com/ghostgzt/ExView/blob/master/dms.jsonp">https://github.com/ghostgzt/ExView/blob/master/dms.jsonp</a></p>
+<table>
+<thead>
+<tr>
+<th>昵称</th>
+<th>称号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>岚dalao</td>
+<td>荣誉内测用户</td>
+</tr>
+<tr>
+<td>不笨 の 笨蛋→_→</td>
+<td>资深测评师</td>
+</tr>
+<tr>
+<td>IASUI</td>
+<td>资深设计师</td>
+</tr>
+<tr>
+<td>Misaki</td>
+<td>VIP</td>
+</tr>
+<tr>
+<td>VoidKing</td>
+<td>VIP</td>
+</tr>
+<tr>
+<td>三俗爱好者</td>
+<td>VIP</td>
+</tr>
+<tr>
+<td>RinMaki</td>
+<td>VIP</td>
+</tr>
+<tr>
+<td>Dwarf</td>
+<td>SVIP</td>
+</tr>
+<tr>
+<td>Bitch</td>
+<td>VIP</td>
+</tr>
+<tr>
+<td>咸鱼</td>
+<td>SVIP</td>
+</tr>
+</tbody>
+</table>
+<p>我就不放qq了，这是隐私信息。
+但是昵称改一下就能去广告，挺好的。</p>
+<hr>
+<p>更新一波，js 解出来了。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="k">if</span> <span class="p">([</span><span class="s2">&#34;1b22289d656182b24547f307c9d368b7&#34;</span><span class="p">,</span> <span class="s2">&#34;552bc26417cb2969badc8f1229797571&#34;</span><span class="p">].</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">ExView</span><span class="p">.</span><span class="nx">tools</span><span class="p">.</span><span class="nx">md5</span><span class="p">.</span><span class="nx">hex_md5</span><span class="p">(</span><span class="s1">&#39;Keep Out!&#39;</span> <span class="o">+</span> <span class="nx">localStorage</span><span class="p">.</span><span class="nx">ExView_InitJSON</span> <span class="o">+</span> <span class="s1">&#39;Keep Out!&#39;</span><span class="p">))</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nb">window</span><span class="p">.</span><span class="nx">debug</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">delete</span> <span class="nx">localStorage</span><span class="p">.</span><span class="nx">ExView_InitJSON</span><span class="p">;</span>
+    <span class="nx">mySession</span><span class="p">.</span><span class="nx">initjsonpath</span> <span class="o">=</span> <span class="s2">&#34;RtuFEqa&#34;</span><span class="p">;</span>
+    <span class="k">delete</span> <span class="nx">localStorage</span><span class="p">.</span><span class="nx">ExView_InitType</span><span class="p">;</span>
+    <span class="nx">ExView</span><span class="p">.</span><span class="nx">fw</span><span class="p">.</span><span class="nx">alert</span><span class="p">(</span><span class="s2">&#34;\u597d\u597d\u5750\u516c\u4ea4\u8f66\u5427~&lt;br&gt;\u5df2\u6350\u8d60\u7684\u8001\u53f8\u673a\uff0c\u51ed10+\u6350\u8d60\u51ed\u636e\u627e\u4f5c\u8005\uff01&lt;br&gt;\u6350\u8d6050+\u53bb\u5e7f\u544a\u9001VIP&#34;</span><span class="p">,</span> <span class="nx">sessionStorage</span><span class="p">.</span><span class="nx">modaltitleextra</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">ExView</span><span class="p">.</span><span class="nx">modules</span><span class="p">.</span><span class="nx">pluginpage</span><span class="p">.</span><span class="nx">init</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">});</span>
+    <span class="k">throw</span> <span class="nx">SyntaxError</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>附个eval解码器。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html"><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="nx">a</span><span class="o">=</span><span class="mi">62</span><span class="p">;</span>
+<span class="kd">function</span> <span class="nx">encode</span><span class="p">()</span> <span class="p">{</span>
+<span class="kd">var</span> <span class="nx">code</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">).</span><span class="nx">value</span><span class="p">;</span>
+<span class="nx">code</span> <span class="o">=</span> <span class="nx">code</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/[\r\n]+/g</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+<span class="nx">code</span> <span class="o">=</span> <span class="nx">code</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&#39;/g</span><span class="p">,</span> <span class="s2">&#34;\\&#39;&#34;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">tmp</span> <span class="o">=</span> <span class="nx">code</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/\b(\w+)\b/g</span><span class="p">);</span>
+<span class="nx">tmp</span><span class="p">.</span><span class="nx">sort</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">dict</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="kd">var</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">t</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+<span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">tmp</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">if</span><span class="p">(</span><span class="nx">tmp</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">!=</span> <span class="nx">t</span><span class="p">)</span> <span class="nx">dict</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">t</span> <span class="o">=</span> <span class="nx">tmp</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">dict</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">ch</span><span class="p">;</span>
+<span class="k">for</span><span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">len</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+<span class="nx">ch</span> <span class="o">=</span> <span class="nx">num</span><span class="p">(</span><span class="nx">i</span><span class="p">);</span>
+<span class="nx">code</span> <span class="o">=</span> <span class="nx">code</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;\\b&#39;</span><span class="o">+</span><span class="nx">dict</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;\\b&#39;</span><span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">),</span> <span class="nx">ch</span><span class="p">);</span>
+<span class="k">if</span><span class="p">(</span><span class="nx">ch</span> <span class="o">==</span> <span class="nx">dict</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="nx">dict</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">).</span><span class="nx">value</span> <span class="o">=</span> <span class="s2">&#34;eval(function(p,a,c,k,e,d){e=function(c){return(c&lt;a?&#39;&#39;:e(parseInt(c/a)))+((c=c%a)&gt;35?String.fromCharCode(c+29):c.toString(36))};if(!&#39;&#39;.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return&#39;\\\\w+&#39;};c=1};while(c--)if(k[c])p=p.replace(new RegExp(&#39;\\\\b&#39;+e(c)+&#39;\\\\b&#39;,&#39;g&#39;),k[c]);return p}(&#34;</span>
+<span class="o">+</span> <span class="s2">&#34;&#39;&#34;</span><span class="o">+</span><span class="nx">code</span><span class="o">+</span><span class="s2">&#34;&#39;,&#34;</span><span class="o">+</span><span class="nx">a</span><span class="o">+</span><span class="s2">&#34;,&#34;</span><span class="o">+</span><span class="nx">len</span><span class="o">+</span><span class="s2">&#34;,&#39;&#34;</span><span class="o">+</span> <span class="nx">dict</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span><span class="o">+</span><span class="s2">&#34;&#39;.split(&#39;|&#39;),0,{}))&#34;</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">num</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">return</span><span class="p">(</span><span class="nx">c</span><span class="o">&lt;</span><span class="nx">a</span><span class="o">?</span><span class="s1">&#39;&#39;</span><span class="o">:</span><span class="nx">num</span><span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">c</span><span class="o">/</span><span class="nx">a</span><span class="p">)))</span><span class="o">+</span><span class="p">((</span><span class="nx">c</span><span class="o">=</span><span class="nx">c</span><span class="o">%</span><span class="nx">a</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">35</span><span class="o">?</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="nx">c</span><span class="o">+</span><span class="mi">29</span><span class="p">)</span><span class="o">:</span><span class="nx">c</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="mi">36</span><span class="p">));</span> <span class="p">}</span>
+<span class="kd">function</span> <span class="nx">run</span><span class="p">()</span> <span class="p">{</span>
+<span class="nb">eval</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">).</span><span class="nx">value</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">decode</span><span class="p">()</span> <span class="p">{</span>
+<span class="kd">var</span> <span class="nx">code</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">).</span><span class="nx">value</span><span class="p">;</span>
+<span class="nx">code</span> <span class="o">=</span> <span class="nx">code</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^eval/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">).</span><span class="nx">value</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="nx">code</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">textarea</span> <span class="na">id</span><span class="o">=</span><span class="s">&#34;code&#34;</span> <span class="na">cols</span><span class="o">=</span><span class="s">&#34;80&#34;</span> <span class="na">rows</span><span class="o">=</span><span class="s">&#34;8&#34;</span> <span class="na">style</span><span class="o">=</span><span class="s">&#34;margin: 0px -32px 10px 0px; height: 184px; width: 600px;&#34;</span><span class="p">&gt;&lt;/</span><span class="nt">textarea</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&#34;button&#34;</span> <span class="na">onclick</span><span class="o">=</span><span class="s">&#34;encode()&#34;</span> <span class="na">value</span><span class="o">=</span><span class="s">&#34;编码&#34;</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&#34;button&#34;</span> <span class="na">onclick</span><span class="o">=</span><span class="s">&#34;run()&#34;</span> <span class="na">value</span><span class="o">=</span><span class="s">&#34;执行&#34;</span><span class="p">&gt;</span> <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&#34;button&#34;</span> <span class="na">onclick</span><span class="o">=</span><span class="s">&#34;decode()&#34;</span> <span class="na">value</span><span class="o">=</span><span class="s">&#34;解码&#34;</span><span class="p">&gt;&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>好了，关键地方就在<code>if ([&quot;1b22289d656182b24547f307c9d368b7&quot;, &quot;552bc26417cb2969badc8f1229797571&quot;].indexOf(ExView.tools.md5.hex_md5('Keep Out!' + localStorage.ExView_InitJSON + 'Keep Out!')) == -1</code></p>
+<p>稍微解释一下，<code>1b22289d656182b24547f307c9d368b7</code>和<code>552bc26417cb2969badc8f1229797571</code>都是经过<code>ExView.tools.md5.hex_md5</code>的加密而成的md5哈希值，但是具体方法并不清楚，因为没有开源，而<code>localStorage.ExView_InitJSON</code>则是用户本地所输入的车牌号，<code>indexOf()</code>函数返回<code>-1</code>时只可能是在无法找到匹配项才能实现，从而抛出异常并重置。</p>
+<p>所以，根据这样的推断，<code>ExView.tools.md5.hex_md5('Keep Out!RIY6p9BKeep Out!')</code>符合md5哈希值即可，其中<code>RIY6p9B</code>为R开头加6位大小写+数字的字符串，蛐蛐五百亿次尝试便可获得真正的车牌，价值10块钱。。</p>
+<hr>
+<p>开发者送给我了个车牌。。真是谢谢啦。
+开发者用的是<a href="https://ghostgzt.github.io/ExView/driver161217.jsonp">GitHub Page</a>的服务，而我并不是很熟悉。
+在过程中少了一些逆向思维，我还是太年轻了。</p>
+<hr>
+<p>为了看起来不那么年轻，我打算拆一个车牌。
+通过加载自己源的jsonp，我知道这样可以实现简单的调试，于是我尝试获取更多信息，使用了一些<a href="https://github.com/ghostgzt/ExView/blob/master/src/README.md">语法</a>。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="nx">ExView</span><span class="p">.</span><span class="nx">fw</span><span class="p">.</span><span class="nx">alert</span><span class="p">(</span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">ExView_InitJSON</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>返回的是带引号的车牌<code>&quot;RIkcxgj&quot;</code>
+然后验证赠送的车牌。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="nx">ExView</span><span class="p">.</span><span class="nx">fw</span><span class="p">.</span><span class="nx">alert</span><span class="p">(</span><span class="nx">ExView</span><span class="p">.</span><span class="nx">tools</span><span class="p">.</span><span class="nx">md5</span><span class="p">.</span><span class="nx">hex_md5</span><span class="p">(</span><span class="s1">&#39;Keep Out!&#34;车牌&#34;Keep Out!&#39;</span><span class="p">))</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>返回<code>1b22289d656182b24547f307c9d368b7</code>
+看得出来这个值跟市面上的md5加密一样，没有盐。</p>
+<p><a href="http://360app.ft12.com/index.html">短网址</a>
+<a href="http://www.cmd5.com/hash.aspx">MD5</a></p>
+]]></content></item><item><title>Linux 切换默认桌面的须知</title><link>https://simonsmh.cc/posts/linux_%E5%88%87%E6%8D%A2%E9%BB%98%E8%AE%A4%E6%A1%8C%E9%9D%A2%E7%9A%84%E9%A1%BB%E7%9F%A5/</link><pubDate>Sat, 31 Dec 2016 19:30:00 +0000</pubDate><guid>https://simonsmh.cc/posts/linux_%E5%88%87%E6%8D%A2%E9%BB%98%E8%AE%A4%E6%A1%8C%E9%9D%A2%E7%9A%84%E9%A1%BB%E7%9F%A5/</guid><description>vps上准备切换到xfce桌面环境，事先做好了准备工作，但是在最后一步卡住了。 Debian 修改 X-session xsession默认选择的是lxde，我想尽办法搜索相</description><content type="html"><![CDATA[<blockquote>
+<p>vps上准备切换到xfce桌面环境，事先做好了准备工作，但是在最后一步卡住了。</p>
+</blockquote>
+<h2 id="debian-修改-x-session">Debian 修改 X-session</h2>
+<p>xsession默认选择的是lxde，我想尽办法搜索相关的信息，包括xinit，startx的配置文件，lightdm的配置方法，都在Arch wiki上找到了，学到了很多知识，但并没有什么卵用。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">update-alternatives --config x-session-manager
+</code></pre></td></tr></table>
+</div>
+</div><p>这个命令可以解决问题。<br>
+重新启动，发现系统中早已完成了桌面环境的启动，而无法成功实现切换</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">root@simonsmh:~# startxfce4
+/usr/bin/startxfce4: Starting X server
+
+<span class="o">(</span>EE<span class="o">)</span>
+Fatal server error:
+<span class="o">(</span>EE<span class="o">)</span> Server is already active <span class="k">for</span> display <span class="m">0</span>
+        If this server is no longer running, remove /tmp/.X0-lock
+        and start again.
+<span class="o">(</span>EE<span class="o">)</span>
+<span class="o">(</span>EE<span class="o">)</span>
+Please consult the The X.Org Foundation support
+         at http://wiki.x.org
+ <span class="k">for</span> help.
+<span class="o">(</span>EE<span class="o">)</span>
+^CInvalid MIT-MAGIC-COOKIE-1 keyxinit: giving up
+xinit: unable to connect to X server: Resource temporarily unavailable
+xinit: unexpected signal <span class="m">2</span>
+root@simonsmh:~# startlxde
+** Message: main.vala:102: Session is LXDE
+** Message: main.vala:103: DE is LXDE
+
+<span class="o">(</span>lxsession:1916<span class="o">)</span>: Gtk-WARNING **: cannot open display:
+root@simonsmh:~#
+</code></pre></td></tr></table>
+</div>
+</div><p>由此可知，一定是某项开机启动的x视窗服务未更改默认的session<br>
+然而，寻找到x11下的session，删除lxde的session后，发现并未奏效。<br>
+而且，寻找到lightdm下有默认登录的session配置，却未启用。<br>
+startx xinitrc的配置也如同平常，vnc配置的选项依旧冲突，于是只可能是x服务本身的问题。<br>
+再然后，重新配置x-session-manager，问题解决。</p>
+<p>顺便，unity桌面史上最差，kde高特技低效率，lxde丑哭，xfce最棒不服来辩。<br>
+主题使用Adapta，图标使用Paper，效果很赞。</p>
+]]></content></item><item><title>android 去叹号</title><link>https://simonsmh.cc/posts/android_%E5%8E%BB%E5%8F%B9%E5%8F%B7/</link><pubDate>Thu, 08 Dec 2016 14:42:00 +0000</pubDate><guid>https://simonsmh.cc/posts/android_%E5%8E%BB%E5%8F%B9%E5%8F%B7/</guid><description>从Android 5.0 (Lollipop)开始，安卓为了检测各种需要登录的Wifi服务，提供了captive_portal_detection_</description><content type="html"><![CDATA[<blockquote>
+<p>从Android 5.0 (Lollipop)开始，安卓为了检测各种需要登录的Wifi服务，提供了captive_portal_detection_enabled和captive_portal_server这两个设置，分别作为检测的开关和服务器。</p>
+</blockquote>
+<h2 id="去叹号">去叹号</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">settings delete global captive_portal_server
+settings delete global captive_portal_http_url
+settings delete global captive_portal_https_url
+settings put global captive_portal_https_url https://developers.google.cn/generate_204
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>记一次 gradle/android adk/android ndk/apk build 尝试</title><link>https://simonsmh.cc/posts/%E8%AE%B0%E4%B8%80%E6%AC%A1gradle_android_adk_android_ndk_apk_build%E5%B0%9D%E8%AF%95/</link><pubDate>Tue, 18 Oct 2016 19:09:00 +0000</pubDate><guid>https://simonsmh.cc/posts/%E8%AE%B0%E4%B8%80%E6%AC%A1gradle_android_adk_android_ndk_apk_build%E5%B0%9D%E8%AF%95/</guid><description>最近尝试在安装sdk来尝试编译一些gayhub上瞄到的程序，写个教程给自己看。 环境搭建 首先安装Java :cup: 1 apt install openjdk-8-jdk 然后安装gradle 然而ap</description><content type="html"><![CDATA[<blockquote>
+<p>最近尝试在安装sdk来尝试编译一些gayhub上瞄到的程序，写个教程给自己看。</p>
+</blockquote>
+<h2 id="环境搭建">环境搭建</h2>
+<p>首先安装Java :cup:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">apt install openjdk-8-jdk
+</code></pre></td></tr></table>
+</div>
+</div><p>然后安装gradle<br>
+然而apt安装的gradle居然版本只有2.x，不愧debian</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">curl -s https://get.sdkman.io | bash
+source &#34;/root/.sdkman/bin/sdkman-init.sh #加载sdkman
+sdk install gradle 3.1
+</code></pre></td></tr></table>
+</div>
+</div><p>然后处理一下sdk<br>
+这里在apt里也有个installer，也是个坑，不要碰它</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+tar -xf android-sdk_r24.4.1-linux.tgz
+export ANDROID_HOME=$HOME/android-sdk-linux
+export PATH=${PATH}:$HOME/android-sdk-linux/platform-tools:$HOME/android-sdk-linux/tools
+echo &#39;export ANDROID_HOME=$HOME/android-sdk-linux&#39; &gt;&gt; ~/.bashrc 
+echo &#39;export PATH=${PATH}:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools&#39; &gt;&gt; ~/.bashrc  #自己改了啦
+</code></pre></td></tr></table>
+</div>
+</div><p>开始使用android sdk安装sdk包</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">android update sdk -t tools -u
+android update sdk -t platform-tools -u
+android update sdk -t build-tools-23.0.3 -u
+android update sdk -t build-tools-24.0.3 -u
+android update sdk -t android-23 -u
+android update sdk -t android-24 -u
+android update sdk -t extra-android-m2repository -u
+android update sdk -t extra-google-m2repository -u
+</code></pre></td></tr></table>
+</div>
+</div><p>最后处理一下ndk<br>
+这里在apt里还有个installer，还是个坑，不要碰它</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">wget https://dl.google.com/android/repository/android-ndk-r13-linux-x86_64.zip
+unzip android-ndk-r13-linux-x86_64.zip
+rm android-ndk-r13-linux-x86_64.zip
+export ANDROID_NDK_HOME=~/android-ndk-r13/
+echo &#39;export ANDROID_NDK_HOME=~/android-ndk-r13&#39; &gt;&gt; ~/.bashrc
+</code></pre></td></tr></table>
+</div>
+</div><p>gradle编译</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">gradle &amp;&amp; gradle build
+</code></pre></td></tr></table>
+</div>
+</div><p>gradle使用时看见error</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">A problem occurred configuring project &#39;:app&#39;. &gt; You have not accepted the license agreements of the following SDK components: 
+[Android SDK Platform 24].
+</code></pre></td></tr></table>
+</div>
+</div><p>说明Android SDK Platform 24没有安装，android list sdk -a查一下是哪个包，然后按需安装即可<br>
+有时候，gradle编译到一半抛出个exception（手动sticker<br>
+vps的内存小可能会是主要因素。新写入一个swap的img文件可以给jdk留下充足空间</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">dd if=/dev/zero of=/swap bs=256M count=4
+mkswap /swap
+chmod 600 /swap
+swapon /swap
+</code></pre></td></tr></table>
+</div>
+</div><p>注意这个在每次启动时都要手动swapon一下。
+创建keystore，生成一个名为simonsmh的key（诶嘿嘿</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">keytool -genkey -v -keystore simonsmh.key -alias simonsmh -keyalg RSA -keysize 2048 -validity 10000
+</code></pre></td></tr></table>
+</div>
+</div><p>给apk签名</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">jarsigner -keystore simonsmh.key *.apk simonsmh
+</code></pre></td></tr></table>
+</div>
+</div><p>附一个adb/fastboot</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">sudo apt install android-tools-adb android-tools-fastboot
+</code></pre></td></tr></table>
+</div>
+</div><p>安装完就使用肯定会出现No permissions，需要设置一下android.rules</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">sudo echo -e &#39;SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;0bb4&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;0502&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;12d1&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;1004&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;22b8&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;04e8&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;0fce&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;0489&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;18d1&#34;, SYMLINK+=&#34;android_adb&#34;, MODE=&#34;0666&#34;
+SUBSYSTEM==&#34;usb&#34;, ATTRS{idVendor}==&#34;04e8&#34;, MODE=&#34;0666&#34;, GROUP=&#34;plugdev&#34;&#39; &gt; /etc/udev/rules.d/51-android.rules
+sudo service udev restart &amp;&amp; killall adb
+</code></pre></td></tr></table>
+</div>
+</div><p>这样就能看见设备了。</p>
+]]></content></item><item><title>Linux安装kcptun</title><link>https://simonsmh.cc/posts/linux_%E5%AE%89%E8%A3%85kcptun/</link><pubDate>Sun, 04 Sep 2016 11:04:00 +0000</pubDate><guid>https://simonsmh.cc/posts/linux_%E5%AE%89%E8%A3%85kcptun/</guid><description>kcptun kcptun 安装 1 2 3 4 5 wget https://github.com/xtaci/kcptun/releases/download/v20160902/kcptun-linux-amd64-20160902.tar.gz tar -xf kcptun-linux-amd64-20160902.tar.gz mv server_linux_amd64 /usr/bin/kcptun chmod 755 /usr/bin/kcptun rm -rf client_linux_amd64 kcptun-linux-amd64-20160902.tar.gz 使用 1 kcptun -l :8399 -t 127.0.0.1:8388 --crypt none --nocomp --mtu 1492 --sndwnd 2048 --rcvwnd 2048 --mode default -datashard 10 -parityshard 3 --dscp 46 &amp;amp; ss-android端参数 1 --crypt none --nocomp --mtu 1492 --sndwnd</description><content type="html"><![CDATA[<blockquote>
+<p><a href="https://github.com/xtaci/kcptun/releases">kcptun</a></p>
+</blockquote>
+<h2 id="kcptun-安装">kcptun 安装</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">wget https://github.com/xtaci/kcptun/releases/download/v20160902/kcptun-linux-amd64-20160902.tar.gz
+tar -xf kcptun-linux-amd64-20160902.tar.gz
+mv server_linux_amd64 /usr/bin/kcptun 
+chmod <span class="m">755</span> /usr/bin/kcptun 
+rm -rf client_linux_amd64 kcptun-linux-amd64-20160902.tar.gz
+</code></pre></td></tr></table>
+</div>
+</div><p>使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">kcptun -l :8399 -t 127.0.0.1:8388 --crypt none --nocomp --mtu <span class="m">1492</span> --sndwnd <span class="m">2048</span> --rcvwnd <span class="m">2048</span> --mode default -datashard <span class="m">10</span> -parityshard <span class="m">3</span> --dscp <span class="m">46</span> <span class="p">&amp;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>ss-android端参数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">--crypt none --nocomp --mtu <span class="m">1492</span> --sndwnd <span class="m">64</span> --rcvwnd <span class="m">64</span> --mode default -datashard <span class="m">10</span> -parityshard <span class="m">3</span> --dscp <span class="m">46</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>测试手动参数<br>
+client</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">-mode manual -nodelay <span class="m">0</span> -resend <span class="m">0</span> -nc <span class="m">1</span> -interval <span class="m">40</span> -dscp <span class="m">46</span> -nocomp -mtu <span class="m">1492</span> -crypt salsa20 -datashard <span class="m">70</span> -parityshard <span class="m">30</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>服务端</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">-mode manual -nodelay <span class="m">0</span> -resend <span class="m">0</span> -nc <span class="m">1</span> -interval <span class="m">40</span> -dscp <span class="m">46</span> -nocomp -mtu <span class="m">1492</span> -crypt salsa20 -datashard <span class="m">70</span> -parityshard <span class="m">30</span>
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>termux 配置 oh-my-zsh 脚本</title><link>https://simonsmh.cc/posts/termux%E9%85%8D%E7%BD%AEoh-my-zsh%E8%84%9A%E6%9C%AC/</link><pubDate>Wed, 27 Jul 2016 14:33:00 +0000</pubDate><guid>https://simonsmh.cc/posts/termux%E9%85%8D%E7%BD%AEoh-my-zsh%E8%84%9A%E6%9C%AC/</guid><description>termux配置oh-my-zsh脚本 推荐ys主题，shell要是没有路径显示很难受 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 #!/data/data/com.termux/files/usr/bin/bash termux-setup-storage apt update apt install -y git zsh git clone https://github.com/simonsmh/oh-my-termux.git if</description><content type="html"><![CDATA[<h2 id="termux配置oh-my-zsh脚本">termux配置oh-my-zsh脚本</h2>
+<p>推荐ys主题，shell要是没有路径显示很难受</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="cp">#!/data/data/com.termux/files/usr/bin/bash
+</span><span class="cp"></span>termux-setup-storage
+apt update
+apt install -y git zsh
+git clone https://github.com/simonsmh/oh-my-termux.git
+<span class="k">if</span> <span class="o">[</span> -d <span class="s2">&#34;</span><span class="nv">$HOME</span><span class="s2">/.termux&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+ mv <span class="nv">$HOME</span>/.termux <span class="nv">$HOME</span>/.termux.bak
+<span class="k">fi</span>
+mv oh-my-termux/.termux <span class="nv">$HOME</span>/.termux
+rm -rf oh-my-termux
+git clone git://github.com/robbyrussell/oh-my-zsh.git <span class="nv">$HOME</span>/.oh-my-zsh
+cp <span class="nv">$HOME</span>/.oh-my-zsh/templates/zshrc.zsh-template <span class="nv">$HOME</span>/.zshrc
+chsh -s zsh
+<span class="nb">echo</span> Done!
+<span class="nb">exit</span>
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>无名智者云签到更新新版脚本</title><link>https://simonsmh.cc/posts/%E6%97%A0%E5%90%8D%E6%99%BA%E8%80%85%E4%BA%91%E7%AD%BE%E5%88%B0%E6%9B%B4%E6%96%B0%E6%96%B0%E7%89%88%E8%84%9A%E6%9C%AC/</link><pubDate>Sun, 24 Jul 2016 18:33:00 +0000</pubDate><guid>https://simonsmh.cc/posts/%E6%97%A0%E5%90%8D%E6%99%BA%E8%80%85%E4%BA%91%E7%AD%BE%E5%88%B0%E6%9B%B4%E6%96%B0%E6%96%B0%E7%89%88%E8%84%9A%E6%9C%AC/</guid><description>无名智者云签到更新新版脚本 依赖需要安装git，nano update.sh &amp;amp;&amp;amp; chmod a+x update.sh 1 2 3 4 5 6 7 8 9 10 #!/bin/sh path=&amp;#39;/var/www/tieba.simonsmh.tk&amp;#39; name=$(basename $path) cd $path &amp;amp;&amp;amp; cd .. git clone https://github.com/MoeNetwork/Tieba-Cloud-Sign.git cp -R -f $name/plugins/ Tieba-Cloud-Sign/ cp -f $path/config.php Tieba-Cloud-Sign/ touch Tieba-Cloud-Sign/setup/install.lock rm -rf $path &amp;amp;&amp;amp; mv</description><content type="html"><![CDATA[<h2 id="无名智者云签到更新新版脚本">无名智者云签到更新新版脚本</h2>
+<p>依赖需要安装git，<code>nano update.sh &amp;&amp; chmod a+x update.sh</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="cp">#!/bin/sh
+</span><span class="cp"></span><span class="nv">path</span><span class="o">=</span><span class="s1">&#39;/var/www/tieba.simonsmh.tk&#39;</span>
+<span class="nv">name</span><span class="o">=</span><span class="k">$(</span>basename <span class="nv">$path</span><span class="k">)</span>
+<span class="nb">cd</span> <span class="nv">$path</span> <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+git clone https://github.com/MoeNetwork/Tieba-Cloud-Sign.git
+cp -R -f <span class="nv">$name</span>/plugins/ Tieba-Cloud-Sign/
+cp -f <span class="nv">$path</span>/config.php Tieba-Cloud-Sign/
+touch Tieba-Cloud-Sign/setup/install.lock
+rm -rf <span class="nv">$path</span> <span class="o">&amp;&amp;</span> mv Tieba-Cloud-Sign <span class="nv">$name</span>
+<span class="nb">echo</span> <span class="s2">&#34;done&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><a href="https://github.com/MoeNetwork/Tieba-Cloud-Sign">贴吧云签到项目地址</a><br>
+<a href="https://tieba.simonsmh.cc">本人搭建的贴吧云签到</a></p>
+]]></content></item><item><title>Debian8 开机启动服务技巧</title><link>https://simonsmh.cc/posts/debian8_%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1%E6%8A%80%E5%B7%A7/</link><pubDate>Fri, 03 Jun 2016 19:29:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian8_%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1%E6%8A%80%E5%B7%A7/</guid><description>init启动服务sysv-rc-conf 1 apt-get install sysv-rc-conf 在debian8中update-rc.d已经不被推荐使用了。 于此同时，systemctl也开</description><content type="html"><![CDATA[<h2 id="init启动服务sysv-rc-conf">init启动服务sysv-rc-conf</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">apt-get install sysv-rc-conf
+</code></pre></td></tr></table>
+</div>
+</div><p>在debian8中update-rc.d已经不被推荐使用了。<br>
+于此同时，systemctl也开始发挥应有的作用。<br>
+在未来的debian版本中，如果需要服务开机启动，只需要输入：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-fallback" data-lang="fallback">systemctl enable ***
+</code></pre></td></tr></table>
+</div>
+</div><p>即可使用推荐的配置开启开机启动了。</p>
+]]></content></item><item><title>Debian8 安装锐速实录</title><link>https://simonsmh.cc/posts/debian8_%E5%AE%89%E8%A3%85%E9%94%90%E9%80%9F%E5%AE%9E%E5%BD%95/</link><pubDate>Thu, 26 May 2016 22:18:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian8_%E5%AE%89%E8%A3%85%E9%94%90%E9%80%9F%E5%AE%9E%E5%BD%95/</guid><description>降级内核安装 安装3.12-1-amd64内核 完全采用Debian8发行版，感谢91yun的脚本。 由于Debian官方不再支持3.12lts内</description><content type="html"><![CDATA[<blockquote>
+<p>降级内核安装</p>
+</blockquote>
+<h2 id="安装312-1-amd64内核">安装3.12-1-amd64内核</h2>
+<p>完全采用Debian8发行版，感谢<a href="https://github.com/91yun/serverspeeder/">91yun</a>的脚本。
+由于Debian官方不再支持3.12lts内核，只能通过snapshot做变通的解决方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">wget http://snapshot.debian.org/archive/debian/20140310T221406Z/pool/main/l/linux/linux-image-3.12-1-amd64_3.12.9-1_amd64.deb
+wget http://snapshot.debian.org/archive/debian/20140310T221406Z/pool/main/l/linux/linux-headers-3.12-1-common_3.12.9-1_amd64.deb
+dpkg -i *.deb
+</code></pre></td></tr></table>
+</div>
+</div><p>安装完成重启时请自行选择内核，删除原内核</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">apt remove linux-image-amd64
+</code></pre></td></tr></table>
+</div>
+</div><p>然后用脚本安装锐速</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">wget -N --no-check-certificate https://raw.githubusercontent.com/91yun/serverspeeder/master/serverspeeder-all.sh <span class="o">&amp;&amp;</span> bash serverspeeder-all.sh
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="卸载">卸载</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">chattr -i /serverspeeder/etc/apx* <span class="o">&amp;&amp;</span> /serverspeeder/bin/serverSpeeder.sh uninstall -f
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>openwrt 网段互访和防火墙设置</title><link>https://simonsmh.cc/posts/openwrt_%E7%BD%91%E6%AE%B5%E4%BA%92%E8%AE%BF%E5%92%8C%E9%98%B2%E7%81%AB%E5%A2%99%E8%AE%BE%E7%BD%AE/</link><pubDate>Sun, 08 May 2016 15:55:00 +0000</pubDate><guid>https://simonsmh.cc/posts/openwrt_%E7%BD%91%E6%AE%B5%E4%BA%92%E8%AE%BF%E5%92%8C%E9%98%B2%E7%81%AB%E5%A2%99%E8%AE%BE%E7%BD%AE/</guid><description>openwrt 网段互相访问 网络-静态路由 A路由ip wan 192.168.1.10 lan 10.0.0.1 wan 10.0.1.0/24 255.255.255.0 192.168.1.11 B路由ip wan 192.168.1.11 lan 10.0.1.1 wan 10.0.0.0/24 255.255.255.0 192.168.1.10 openwrt 开放80/22端口远程访问 uci set uhttpd.main.rfc1918_filter=0 uci commit uhttpd 网络-防火墙-通信规</description><content type="html"><![CDATA[<h2 id="openwrt-网段互相访问">openwrt 网段互相访问</h2>
+<p>网络-静态路由
+A路由ip wan 192.168.1.10 lan 10.0.0.1
+wan 10.0.1.0/24 255.255.255.0 192.168.1.11
+B路由ip wan 192.168.1.11 lan 10.0.1.1
+wan 10.0.0.0/24 255.255.255.0 192.168.1.10</p>
+<h2 id="openwrt-开放8022端口远程访问">openwrt 开放80/22端口远程访问</h2>
+<p>uci set uhttpd.main.rfc1918_filter=0
+uci commit uhttpd
+网络-防火墙-通信规则
+打开路由器端口:
+80 tcp 80 添加
+22 tcp 22 添加</p>
+]]></content></item><item><title>Debian 安装 seafile + MySQL</title><link>https://simonsmh.cc/posts/debian_%E5%AE%89%E8%A3%85seafile+mysql/</link><pubDate>Sat, 07 May 2016 17:02:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian_%E5%AE%89%E8%A3%85seafile+mysql/</guid><description>Seafile 是一款开源的企业云盘，注重可靠性和性能。支持 Windows, Mac, Linux, iOS, Android 平台。支持文件同步或者直接挂载到本地访问。 安装seafile 1 2 3 4 5 6 7 apt update apt install python2.7</description><content type="html"><![CDATA[<blockquote>
+<p>Seafile 是一款开源的企业云盘，注重可靠性和性能。支持 Windows, Mac, Linux, iOS, Android 平台。支持文件同步或者直接挂载到本地访问。</p>
+</blockquote>
+<h2 id="安装seafile">安装seafile</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">apt update
+apt install python2.7 python-setuptools python-imaging python-ldap python-mysqldb python-memcache
+wget http://download-cn.seafile.com/seafile-server_5.1.1_x86-64.tar.gz
+tar -xzf seafile-server_*
+<span class="nb">cd</span> seafile-server-*
+./setup-seafile-mysql.sh <span class="c1">#安装</span>
+./seafile.sh start <span class="o">&amp;&amp;</span> ./seahub.sh start
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="开机启动">开机启动</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">nano /etc/init/seafile-server.conf <span class="c1">#设置开机脚本</span>
+
+start on <span class="o">(</span>started mysql
+and runlevel <span class="o">[</span>2345<span class="o">])</span>
+stop on <span class="o">(</span>runlevel <span class="o">[</span>016<span class="o">])</span>
+
+pre-start script
+/etc/init.d/seafile-server start
+end script
+
+post-stop script
+/etc/init.d/seafile-server stop
+end script
+
+--------------------
+
+nano /etc/init.d/seafile-server <span class="o">&amp;&amp;</span> chmod a+x /etc/init.d/seafile-server <span class="o">&amp;&amp;</span> update-rc.d seafile-server defaults <span class="c1">#写入开机脚本</span>
+
+<span class="c1">#!/bin/sh</span>
+<span class="c1">### BEGIN INIT INFO</span>
+<span class="c1"># Provides:          seafile-server</span>
+<span class="c1"># Required-Start:    $syslog $remote_fs $network $local_fs</span>
+<span class="c1"># Required-Stop:     $syslog $remote_fs $network $local_fs</span>
+<span class="c1"># Default-Start:     2 3 4 5</span>
+<span class="c1"># Default-Stop:      0 1 6</span>
+<span class="c1"># Short-Description: lightweight secured seafile</span>
+<span class="c1"># Description: seafile server</span>
+<span class="c1">### END INIT INFO</span>
+<span class="nv">user</span><span class="o">=</span>root
+<span class="nv">seafile_dir</span><span class="o">=</span>/root
+<span class="nv">script_path</span><span class="o">=</span><span class="si">${</span><span class="nv">seafile_dir</span><span class="si">}</span>/seafile-server-latest
+<span class="nv">seafile_init_log</span><span class="o">=</span><span class="si">${</span><span class="nv">seafile_dir</span><span class="si">}</span>/logs/seafile.init.log
+<span class="nv">seahub_init_log</span><span class="o">=</span><span class="si">${</span><span class="nv">seafile_dir</span><span class="si">}</span>/logs/seahub.init.log
+<span class="nv">fastcgi</span><span class="o">=</span><span class="nb">false</span>
+<span class="nv">fastcgi_port</span><span class="o">=</span><span class="m">8000</span>
+
+<span class="k">case</span> <span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span> in
+        start<span class="o">)</span>
+                sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seafile.sh start &gt;&gt; <span class="si">${</span><span class="nv">seafile_init_log</span><span class="si">}</span>
+                <span class="k">if</span> <span class="o">[</span>  <span class="nv">$fastcgi</span> <span class="o">=</span> <span class="nb">true</span> <span class="o">]</span><span class="p">;</span>
+                <span class="k">then</span>
+                        sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seahub.sh start-fastcgi <span class="si">${</span><span class="nv">fastcgi_port</span><span class="si">}</span> &gt;&gt; <span class="si">${</span><span class="nv">seahub_init_log</span><span class="si">}</span>
+                <span class="k">else</span>
+                        sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seahub.sh start &gt;&gt; <span class="si">${</span><span class="nv">seahub_init_log</span><span class="si">}</span>
+                <span class="k">fi</span>
+        <span class="p">;;</span>
+        restart<span class="o">)</span>
+                sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seafile.sh restart &gt;&gt; <span class="si">${</span><span class="nv">seafile_init_log</span><span class="si">}</span>
+                <span class="k">if</span> <span class="o">[</span>  <span class="nv">$fastcgi</span> <span class="o">=</span> <span class="nb">true</span> <span class="o">]</span><span class="p">;</span>
+                <span class="k">then</span>
+                        sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seahub.sh restart-fastcgi <span class="si">${</span><span class="nv">fastcgi_port</span><span class="si">}</span> &gt;&gt; <span class="si">${</span><span class="nv">seahub_init_log</span><span class="si">}</span>
+                <span class="k">else</span>
+                        sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seahub.sh restart &gt;&gt; <span class="si">${</span><span class="nv">seahub_init_log</span><span class="si">}</span>
+                <span class="k">fi</span>
+        <span class="p">;;</span>
+        stop<span class="o">)</span>
+                sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seafile.sh <span class="nv">$1</span> &gt;&gt; <span class="si">${</span><span class="nv">seafile_init_log</span><span class="si">}</span>
+                sudo -u <span class="si">${</span><span class="nv">user</span><span class="si">}</span> <span class="si">${</span><span class="nv">script_path</span><span class="si">}</span>/seahub.sh <span class="nv">$1</span> &gt;&gt; <span class="si">${</span><span class="nv">seahub_init_log</span><span class="si">}</span>
+        <span class="p">;;</span>
+        *<span class="o">)</span>
+                <span class="nb">echo</span> <span class="s2">&#34;Usage: /etc/init.d/seafile-server {start|stop|restart}&#34;</span>
+                <span class="nb">exit</span> <span class="m">1</span>
+        <span class="p">;;</span>
+<span class="k">esac</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="高级配置">高级配置</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">rm -rf /root/conf/seahub_settings.pyc
+nano /root/conf/seahub_settings.py <span class="c1">#添加推荐高级配置</span>
+<span class="nv">CACHES</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="s1">&#39;default&#39;</span>: <span class="o">{</span>
+        <span class="s1">&#39;BACKEND&#39;</span>: <span class="s1">&#39;django.core.cache.backends.memcached.MemcachedCache&#39;</span>,
+        <span class="s1">&#39;LOCATION&#39;</span>: <span class="s1">&#39;127.0.0.1:11211&#39;</span>,
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="nv">USE_PDFJS</span> <span class="o">=</span> True
+<span class="nv">FILE_PREVIEW_MAX_SIZE</span> <span class="o">=</span> <span class="m">30</span> * <span class="m">1024</span> * <span class="m">1024</span>
+<span class="nv">ENABLE_THUMBNAIL</span> <span class="o">=</span> True
+<span class="nv">THUMBNAIL_ROOT</span> <span class="o">=</span> <span class="s1">&#39;/tmp/seahub-data/thumbnail/thumb/&#39;</span>
+<span class="nv">EMAIL_USE_TLS</span> <span class="o">=</span> True
+
+<span class="nv">EMAIL_HOST</span> <span class="o">=</span> <span class="s1">&#39;smtp.google.com&#39;</span>
+<span class="nv">EMAIL_HOST_USER</span> <span class="o">=</span> <span class="s1">&#39;simonsmh@gmail.com&#39;</span>
+<span class="nv">EMAIL_HOST_PASSWORD</span> <span class="o">=</span> <span class="s1">&#39;***************&#39;</span>
+<span class="nv">EMAIL_PORT</span> <span class="o">=</span> <span class="s1">&#39;587&#39;</span>
+<span class="nv">DEFAULT_FROM_EMAIL</span> <span class="o">=</span> EMAIL_HOST_USER
+<span class="nv">SERVER_EMAIL</span> <span class="o">=</span> EMAIL_HOST_USER
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>为 wndr4300 编译 openwrt / lede</title><link>https://simonsmh.cc/posts/%E4%B8%BAwndr4300%E7%BC%96%E8%AF%91openwrt/</link><pubDate>Fri, 25 Mar 2016 17:37:00 +0000</pubDate><guid>https://simonsmh.cc/posts/%E4%B8%BAwndr4300%E7%BC%96%E8%AF%91openwrt/</guid><description>为 wndr4300 编译 lede 准备工作 1 2 3 4 sudo apt-get install subversion build-essential libncurses5-dev zlib1g-dev gawk git ccache gettext libssl-dev xsltproc cd git clone git://git.openwrt.org/15.05/openwrt.git cd openwrt 源代码同步构建 (out of dated) 1 2 3 4 5 6 7 8 9 10 git pull #git checkout 15.05.01 #检查15.05.01稳定</description><content type="html"><![CDATA[<h1 id="为-wndr4300-编译-lede">为 wndr4300 编译 lede</h1>
+<h2 id="准备工作">准备工作</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">sudo apt-get install subversion build-essential libncurses5-dev zlib1g-dev gawk git ccache gettext libssl-dev xsltproc
+<span class="nb">cd</span>
+git clone git://git.openwrt.org/15.05/openwrt.git
+<span class="nb">cd</span> openwrt
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="源代码同步构建-out-of-dated">源代码同步构建 (out of dated)</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">git pull
+<span class="c1">#git checkout 15.05.01 #检查15.05.01稳定分支</span>
+./scripts/feeds update -a
+./scripts/feeds install luci
+wget https://downloads.openwrt.org/chaos_calmer/15.05.01/ar71xx/nand/config.diff
+sed -i  s/<span class="s1">&#39;CONFIG_TARGET_ar71xx_nand_R6100=y&#39;</span>/<span class="s1">&#39;CONFIG_TARGET_ar71xx_nand_WNDR4300=y&#39;</span>/ config.diff
+sed -i  s/<span class="s1">&#39;23552k(ubi),25600k@0x6c0000(firmware)&#39;</span>/<span class="s1">&#39;120832k(ubi),122880k@0x6c0000(firmware)&#39;</span>/ target/linux/ar71xx/image/Makefile
+cat config.diff &gt;&gt; .config
+make defconfig
+make -j <span class="c1">#多线程</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="使用-openwrt-image-builder-快速构建">使用 openwrt image builder 快速构建</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">wget https://downloads.lede-project.org/releases/17.01.2/targets/ar71xx/nand/lede-imagebuilder-17.01.2-ar71xx-nand.Linux-x86_64.tar.xz
+tar -xf lede-imagebuilder-17.01.2-ar71xx-nand.Linux-x86_64.tar.xz
+<span class="nb">cd</span> lede-imagebuilder-17.01.2-ar71xx-nand.Linux-x86_64
+make info <span class="c1">#查看默认软件包和硬件支持列表</span>
+sed -i  s/<span class="s1">&#39;23552k(ubi),25600k@0x6c0000(firmware)&#39;</span>/<span class="s1">&#39;120832k(ubi),122880k@0x6c0000(firmware)&#39;</span>/ target/linux/ar71xx/image/legacy.mk
+make image <span class="nv">PROFILE</span><span class="o">=</span><span class="s2">&#34;WNDR4300V1&#34;</span> -j <span class="c1">#指定机型+多线程</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="常用软件包">常用软件包</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">opkg install wget ca-bundle ca-certificates luci-i18n-base-file-zh-cn luci-i18n-firewall-zh-cn iptables-mod-tproxy ip shadowsocks-libev luci-app-shadowsocks ChinaDNS luci-app-chinadns pdnsd luci-app-pdnsd luci-app-samba luci-i18n-samba-zh-cn block-mount kmod-usb-storage-extras kmod-fs-ntfs kmod-fs-vfat kmod-fs-exfat
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>Debian 编译自定义内核</title><link>https://simonsmh.cc/posts/debian_%E7%BC%96%E8%AF%91%E8%87%AA%E5%AE%9A%E4%B9%89%E5%86%85%E6%A0%B8/</link><pubDate>Sat, 27 Feb 2016 12:48:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian_%E7%BC%96%E8%AF%91%E8%87%AA%E5%AE%9A%E4%B9%89%E5%86%85%E6%A0%B8/</guid><description>本来是用来对比锐速的，提高 TCP INIT CWND 以尽可能占用更多的带宽。 内核修改提速 1 2 3 sed -i s/&amp;#39;tp-&amp;gt;snd_cwnd = min(tp-&amp;gt;snd_cwnd&amp;#39;/&amp;#39;tp-&amp;gt;snd_cwnd = max(tp-&amp;gt;snd_cwnd&amp;#39;/ net/ipv4/tcp_input.c sed -i s/&amp;#39;define TCP_INIT_CWND 10&amp;#39;/&amp;#39;define TCP_INIT_CWND 96&amp;#39;/ include/net/tcp.h sed -i s/&amp;#39;define TCP_RTO_MIN ((unsigned)(HZ\/5))&amp;#39;/&amp;#39;define TCP_RTO_MIN ((unsigned)(HZ\/25))&amp;#39;/ include/net/tcp.h 编译内核 1 2 3 4 5</description><content type="html"><![CDATA[<blockquote>
+<p>本来是用来对比锐速的，提高 TCP INIT CWND 以尽可能占用更多的带宽。</p>
+</blockquote>
+<h2 id="内核修改提速">内核修改提速</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">sed -i s/<span class="s1">&#39;tp-&gt;snd_cwnd = min(tp-&gt;snd_cwnd&#39;</span>/<span class="s1">&#39;tp-&gt;snd_cwnd = max(tp-&gt;snd_cwnd&#39;</span>/ net/ipv4/tcp_input.c
+sed -i s/<span class="s1">&#39;define TCP_INIT_CWND  10&#39;</span>/<span class="s1">&#39;define TCP_INIT_CWND   96&#39;</span>/ include/net/tcp.h
+sed -i s/<span class="s1">&#39;define TCP_RTO_MIN    ((unsigned)(HZ\/5))&#39;</span>/<span class="s1">&#39;define TCP_RTO_MIN    ((unsigned)(HZ\/25))&#39;</span>/ include/net/tcp.h
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="编译内核">编译内核</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.4.3.tar.gz
+tar -xf linux-4.4.3.tar.gz
+<span class="nb">cd</span> linux-4.4.3
+apt-get install kernel-package
+make oldconfig
+make menuconfig
+make-kpkg clean
+make-kpkg --initrd kernel-image -j3
+<span class="nb">cd</span> ..
+dpkg -i linux-*.deb
+</code></pre></td></tr></table>
+</div>
+</div><p>测试完毕，仅hybla有奇效。</p>
+]]></content></item><item><title>集成 VirtIO 驱动 Windows 的ISO镜像</title><link>https://simonsmh.cc/posts/%E9%9B%86%E6%88%90virtio%E9%A9%B1%E5%8A%A8windows%E7%9A%84iso%E9%95%9C%E5%83%8F/</link><pubDate>Sun, 14 Feb 2016 09:29:00 +0000</pubDate><guid>https://simonsmh.cc/posts/%E9%9B%86%E6%88%90virtio%E9%A9%B1%E5%8A%A8windows%E7%9A%84iso%E9%95%9C%E5%83%8F/</guid><description>集成VirtIO驱动Windows 8.1, 8, 7, XP, Server 2012, 2008, 2003的ISO镜像 http://dl03.miefen.com/os/cn_win_srv_2003_r2_enterprise_x64_with_sp2_vl_cd_merger_incl_virtio_X13-140502-homemade-by-Jetso.iso http://dl03.miefen.com/os/cn_win_srv_2003_r2_enterprise_with_sp2_vl_cd_merger_incl_virtio_X13-140502-homemade-by-Jetso.iso http://dl03.miefen.com/os/en_win_xp_pro_x64_with_sp2_vl_incl_virtio_X13-140502-homemade-by-Jetso.iso http://dl03.miefen.com/os/zh-hans_windows_xp_professional_with_service_pack_3_x86_cd_vl_incl_virtio_x14-140508-homemade-by-Jetso.iso http://dl03.miefen.com/os/cn_windows_server_2008_r2_standard_enterprise_datacenter_and_web_with_sp1_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso http://dl02.miefen.com/os/cn_windows_7_professional_with_sp1_vl_build_x86_dvd_u_incl_virtio-140506-homemade-by-Jetso.iso http://dl02.miefen.com/os/cn_windows_8_1_pro_vl_x86_dvd_incl_virtio-140506-homemade-by-Jetso.iso http://dl02.miefen.com/os/cn_windows_8_pro_vl_x86_dvd_incl_virtio-140506-homemade-by-Jetso.iso http://dl01.miefen.com/os/cn_windows_7_professional_with_sp1_vl_build_x64_dvd_u_incl_virtio-140506-homemade-by-Jetso.iso http://dl01.miefen.com/os/cn_windows_8_pro_vl_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso http://dl01.miefen.com/os/cn_windows_8_1_pro_vl_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso http://dl.miefen.com/os/cn_windows_server_2012_r2_x64_dvd_incl_virtio-140505-homemade-by-Jetso.iso</description><content type="html"><![CDATA[<h2 id="集成virtio驱动windows-81-8-7-xp-server-2012-2008-2003的iso镜像">集成VirtIO驱动Windows 8.1, 8, 7, XP, Server 2012, 2008, 2003的ISO镜像</h2>
+<blockquote>
+<p><a href="http://dl03.miefen.com/os/cn_win_srv_2003_r2_enterprise_x64_with_sp2_vl_cd_merger_incl_virtio_X13-140502-homemade-by-Jetso.iso">http://dl03.miefen.com/os/cn_win_srv_2003_r2_enterprise_x64_with_sp2_vl_cd_merger_incl_virtio_X13-140502-homemade-by-Jetso.iso</a>
+<a href="http://dl03.miefen.com/os/cn_win_srv_2003_r2_enterprise_with_sp2_vl_cd_merger_incl_virtio_X13-140502-homemade-by-Jetso.iso">http://dl03.miefen.com/os/cn_win_srv_2003_r2_enterprise_with_sp2_vl_cd_merger_incl_virtio_X13-140502-homemade-by-Jetso.iso</a>
+<a href="http://dl03.miefen.com/os/en_win_xp_pro_x64_with_sp2_vl_incl_virtio_X13-140502-homemade-by-Jetso.iso">http://dl03.miefen.com/os/en_win_xp_pro_x64_with_sp2_vl_incl_virtio_X13-140502-homemade-by-Jetso.iso</a>
+<a href="http://dl03.miefen.com/os/zh-hans_windows_xp_professional_with_service_pack_3_x86_cd_vl_incl_virtio_x14-140508-homemade-by-Jetso.iso">http://dl03.miefen.com/os/zh-hans_windows_xp_professional_with_service_pack_3_x86_cd_vl_incl_virtio_x14-140508-homemade-by-Jetso.iso</a> <a href="http://dl03.miefen.com/os/cn_windows_server_2008_r2_standard_enterprise_datacenter_and_web_with_sp1_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso">http://dl03.miefen.com/os/cn_windows_server_2008_r2_standard_enterprise_datacenter_and_web_with_sp1_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl02.miefen.com/os/cn_windows_7_professional_with_sp1_vl_build_x86_dvd_u_incl_virtio-140506-homemade-by-Jetso.iso">http://dl02.miefen.com/os/cn_windows_7_professional_with_sp1_vl_build_x86_dvd_u_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl02.miefen.com/os/cn_windows_8_1_pro_vl_x86_dvd_incl_virtio-140506-homemade-by-Jetso.iso">http://dl02.miefen.com/os/cn_windows_8_1_pro_vl_x86_dvd_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl02.miefen.com/os/cn_windows_8_pro_vl_x86_dvd_incl_virtio-140506-homemade-by-Jetso.iso">http://dl02.miefen.com/os/cn_windows_8_pro_vl_x86_dvd_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl01.miefen.com/os/cn_windows_7_professional_with_sp1_vl_build_x64_dvd_u_incl_virtio-140506-homemade-by-Jetso.iso">http://dl01.miefen.com/os/cn_windows_7_professional_with_sp1_vl_build_x64_dvd_u_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl01.miefen.com/os/cn_windows_8_pro_vl_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso">http://dl01.miefen.com/os/cn_windows_8_pro_vl_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl01.miefen.com/os/cn_windows_8_1_pro_vl_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso">http://dl01.miefen.com/os/cn_windows_8_1_pro_vl_x64_dvd_incl_virtio-140506-homemade-by-Jetso.iso</a>
+<a href="http://dl.miefen.com/os/cn_windows_server_2012_r2_x64_dvd_incl_virtio-140505-homemade-by-Jetso.iso">http://dl.miefen.com/os/cn_windows_server_2012_r2_x64_dvd_incl_virtio-140505-homemade-by-Jetso.iso</a></p>
+</blockquote>
+]]></content></item><item><title>Debian + Nginx 配置 Let’s Encrypt</title><link>https://simonsmh.cc/posts/debian+nginx_%E9%85%8D%E7%BD%AE_lets_encrypt/</link><pubDate>Sat, 06 Feb 2016 17:46:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian+nginx_%E9%85%8D%E7%BD%AE_lets_encrypt/</guid><description>Let’s Encrypt 部署过程 Debian 安装 Let’s Encrypt (OUT) 1 2 3 apt update apt install letsencrypt letsencrypt --duplicate certonly --standalone --email simonsmh@gmail.com -d simonsmh.cc -d blog.simonsmh.cc -d tieba.simonsmh.cc Debian 安装 acme.sh 见官方说明 1 2 curl https://get.acme.sh | sh acme.sh --issue -d simonsmh.cc -d app.simonsmh.ccc-d url.simonsmh.cc -d tieba.simonsmh.cc --dns dns_cf --installcert --fullchain-file /etc/nginx/ssl/simonsmh.cc/fullchain.cer --key-file</description><content type="html"><![CDATA[<blockquote>
+<p>Let’s Encrypt 部署过程</p>
+</blockquote>
+<h2 id="debian-安装-lets-encrypt-out">Debian 安装 Let’s Encrypt (OUT)</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">apt update
+apt install letsencrypt
+letsencrypt --duplicate certonly --standalone --email simonsmh@gmail.com -d simonsmh.cc -d blog.simonsmh.cc -d tieba.simonsmh.cc
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="debian-安装-acmesh">Debian 安装 acme.sh</h2>
+<p>见官方<a href="https://github.com/Neilpang/acme.sh/wiki/%E8%AF%B4%E6%98%8E">说明</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">curl  https://get.acme.sh <span class="p">|</span> sh
+acme.sh --issue -d simonsmh.cc -d app.simonsmh.ccc-d url.simonsmh.cc -d tieba.simonsmh.cc --dns dns_cf --installcert --fullchain-file /etc/nginx/ssl/simonsmh.cc/fullchain.cer --key-file /etc/nginx/ssl/simonsmh.cc/privkey.key --reloadcmd <span class="s2">&#34;service nginx force-reload&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="nginx-需要的证书位置">nginx 需要的证书位置</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="c1">#certificate</span>
+/etc/letsencrypt/live/simonsmh.tk/fullchain.pem
+<span class="c1">#privatekey</span>
+/etc/letsencrypt/live/simonsmh.tk/privkey.pem
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="nginx配置示例">nginx配置示例</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-nginx" data-lang="nginx"><span class="k">listen</span> <span class="mi">443</span><span class="p">;</span>
+<span class="k">...</span>
+<span class="s">ssl</span> <span class="no">on</span><span class="p">;</span>
+<span class="k">ssl_certificate</span> <span class="s">/etc/letsencrypt/live/simonsmh.tk/fullchain.pem</span><span class="p">;</span>
+<span class="k">ssl_certificate_key</span> <span class="s">/etc/letsencrypt/live/simonsmh.tk/privkey.pem</span><span class="p">;</span>
+<span class="k">ssl_session_timeout</span> <span class="mi">10m</span><span class="p">;</span>
+<span class="k">ssl_protocols</span> <span class="s">TLSv1</span> <span class="s">TLSv1.1</span> <span class="s">TLSv1.2</span><span class="p">;</span>
+<span class="k">ssl_prefer_server_ciphers</span> <span class="no">on</span><span class="p">;</span>
+<span class="k">ssl_ciphers</span> <span class="s">ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:RC4+RSA:+HIGH:+MEDIUM</span><span class="p">;</span>
+<span class="k">ssl_session_cache</span> <span class="n">builtin</span><span class="p">:</span><span class="mi">1000</span> <span class="s">shared:SSL:10m</span><span class="p">;</span>
+<span class="k">...</span>
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item><item><title>Debian lnmp 安装记录</title><link>https://simonsmh.cc/posts/debian_lnmp_%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95/</link><pubDate>Fri, 05 Feb 2016 19:40:00 +0000</pubDate><guid>https://simonsmh.cc/posts/debian_lnmp_%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95/</guid><description>Linux Nginx MariaDB PHP 准备安装环境 这是所有依赖软件包集合，需要选择性安装 1 2 apt-get remove --purge apache2* samba* bind9* nscd aptitude install build-essential gcc g++ cmake make ntp logrotate automake patch autoconf autoconf2.13 re2c wget flex cron libzip-dev libc6-dev rcconf bison cpp binutils tar bzip2 libncurses5-dev libncurses5 libtool libevent-dev libpcre3 libpcre3-dev libpcrecpp0</description><content type="html"><![CDATA[<blockquote>
+<p>Linux Nginx MariaDB PHP</p>
+</blockquote>
+<h2 id="准备安装环境">准备安装环境</h2>
+<p>这是所有依赖软件包集合，需要选择性安装</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">apt-get remove --purge apache2* samba* bind9* nscd  
+aptitude install build-essential gcc g++ cmake make ntp logrotate automake patch autoconf autoconf2.13 re2c wget flex cron libzip-dev libc6-dev rcconf bison cpp binutils tar bzip2 libncurses5-dev libncurses5 libtool libevent-dev libpcre3 libpcre3-dev libpcrecpp0 libssl-dev zlibc openssl libsasl2-dev libxml2 libxml2-dev libltdl3-dev libltdl-dev zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libglib2.0-0 libglib2.0-dev libpng3 libfreetype6 libfreetype6-dev libjpeg62 libjpeg-dev libpng-dev libpng12-0 libpng12-dev libpq-dev libpq5 gettext libcap-dev ftp expect unrar gzip zip unzip git vim debian-keyring debian-archive-keyring gawk debhelper dh-systemd init-system-helpers asciidoc pkg-config xmlto apg libpcre3-dev subversion ccache xsltproc  
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="开始安装">开始安装</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">aptitude install nginx-extras mariadb-client mariadb-server  
+aptitude install php7.1-fpm php7.1-bcmath php7.1-bz2 php7.1-cli php7.1-curl php7.1-enchant php7.1-gd php7.1-gmp php7.1-imap php7.1-interbase php7.1-intl php7.1-json php7.1-ldap php7.1-mbstring php7.1-mcrypt php7.1-memcached php7.1-mysql php7.1-odbc php7.1-opcache php7.1-pspell php7.1-readline php7.1-recode php7.1-soap php7.1-sybase php7.1-tidy php7.1-xml php7.1-xmlrpc php7.1-zip  
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="开机启动">开机启动</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash">systemctl <span class="nb">enable</span> nginx  
+systemctl <span class="nb">enable</span> mysql  
+systemctl <span class="nb">enable</span> php7.1-fpm  
+</code></pre></td></tr></table>
+</div>
+</div><p>按需配置</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># php7 默认 listen = /run/php/php7.1-fpm.sock</span>  
+sed -i  s/<span class="s1">&#39;upload_max_filesize = 2M&#39;</span>/<span class="s1">&#39;upload_max_filesize = 1024M&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;post_max_size = 8M&#39;</span>/<span class="s1">&#39;post_max_size = 1024M&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;short_open_tag = Off&#39;</span>/<span class="s1">&#39;short_open_tag = On&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;default_socket_timeout = 60&#39;</span>/<span class="s1">&#39;default_socket_timeout = 300&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;memory_limit = 128M&#39;</span>/<span class="s1">&#39;memory_limit = 64M&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;;opcache.enable=0&#39;</span>/<span class="s1">&#39;opcache.enable=1&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;;opcache.enable_cli=0&#39;</span>/<span class="s1">&#39;opcache.enable_cli=1&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;;opcache.fast_shutdown=0&#39;</span>/<span class="s1">&#39;opcache.fast_shutdown=1&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;zlib.output_compression = Off&#39;</span>/<span class="s1">&#39;zlib.output_compression = On&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;;zlib.output_compression_level = -1&#39;</span>/<span class="s1">&#39;zlib.output_compression_level = 5&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;allow_url_include = Off&#39;</span>/<span class="s1">&#39;allow_url_include = On&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+<span class="c1">#debug</span>
+sed -i  s/<span class="s1">&#39;display_errors = Off&#39;</span>/<span class="s1">&#39;display_errors = On&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+sed -i  s/<span class="s1">&#39;display_errors = On&#39;</span>/<span class="s1">&#39;display_errors = Off&#39;</span>/ /etc/php/7.1/fpm/php.ini  
+</code></pre></td></tr></table>
+</div>
+</div>]]></content></item></channel></rss>
