@@ -7,3 +7,5 @@ title: 友情链接
 [Jerry的博客](https://jerryxiao.cc/)
 
 [Rachel的博客](https://blog.stfw.info/)
+
+[xMuu's Blog](https://blog.ilve.me/)
